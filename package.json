@@ -1,0 +1,26 @@
+{
+    "name":        "hapi-plugin-websocket",
+    "version":     "0.9.2",
+    "description": "HAPI plugin for seamless WebSocket integration",
+    "keywords":    [ "hapi", "plugin", "websocket" ],
+    "main":        "./hapi-plugin-websocket.js",
+    "license":     "MIT",
+    "repository": {
+        "type": "git",
+        "url":  "https://github.com/rse/hapi-plugin-websocket.git"
+    },
+    "author": {
+        "name":  "Ralf S. Engelschall",
+        "email": "rse@engelschall.com",
+        "url":   "http://engelschall.com"
+    },
+    "homepage": "https://github.com/rse/hapi-plugin-websocket",
+    "bugs":     "https://github.com/rse/hapi-plugin-websocket/issues",
+    "dependencies": {
+        "boom":        "~3.1.2",
+        "ws":          "~1.0.1"
+    },
+    "engines": {
+        "node":        ">=4.0.0"
+    }
+}
