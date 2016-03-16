@@ -167,6 +167,21 @@ $ wscat --connect ws://127.0.0.1:12345/quux
 < {"cmd":"PING"}
 ```
 
+Notice
+------
+
+With [NES](https://github.com/hapijs/nes) there is a popular alternative
+HAPI plugin for WebSocket integration. The hapi-plugin-websocket
+plugin in contrast is a light-weight solution and was developed
+with especially three distinct features in mind: (1) everything
+is handled through the regular HAPI route API (i.e. no additional
+APIs like `server.subscribe()`), (2) HTTP replies with status code
+204 ("No Content") are explicitly taken into account (i.e. no
+WebSocket response message is sent at all in this case) and (3) HAPI
+routes can be controlled to be plain REST, combined REST+WebSocket
+or WebSocket-only routes. If you want a more elaborate solution,
+[NES](https://github.com/hapijs/nes) could be your choice.
+
 License
 -------
 
