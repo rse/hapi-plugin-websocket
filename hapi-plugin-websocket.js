@@ -54,13 +54,17 @@ var register = (server, options, next) => {
                     })
 
                     /*  on WebSocket connection...  */
-                    let options = route.settings.plugins.websocket
+                    var options = route.settings.plugins.websocket
                     wss.on("connection", (ws) => {
-                        if (   typeof options === "object"
-                            && typeof options.onConnect === "function")
-                            options.onConnect.call(null, wss, ws)
+                        /*  provide a local app context  */
+                        var ctx = {}
 
-                        /*  on WebSocket message...  */
+                        /*  hook into WebSocket connection  */
+                        if (   typeof options === "object"
+                            && typeof options.connect === "function")
+                            options.connect.call(ctx, wss, ws)
+
+                        /*  hook into WebSocket message retrival  */
                         ws.on("message", (message) => {
                             /*  transform incoming message into a simulated HTTP request  */
                             server.inject({
@@ -69,7 +73,7 @@ var register = (server, options, next) => {
                                 headers:       ws.upgradeReq.headers,
                                 remoteAddress: ws.upgradeReq.socket.remoteAddress,
                                 payload:       message,
-                                plugins:       { websocket: { wss: wss, ws: ws } }
+                                plugins:       { websocket: { ctx: ctx, wss: wss, ws: ws } }
                             }, (response) => {
                                 /*  transform HTTP response into an outgoing message  */
                                 if (response.statusCode !== 204)
@@ -77,11 +81,11 @@ var register = (server, options, next) => {
                             })
                         })
 
-                        /*  on WebSocket disconnection...  */
+                        /*  hook into WebSocket disconnection  */
                         ws.on("close", () => {
                             if (   typeof options === "object"
-                                && typeof options.onDisconnect === "function")
-                                options.onDisconnect.call(null, wss, ws)
+                                && typeof options.disconnect === "function")
+                                options.disconnect.call(ctx, wss, ws)
                         })
                     })
                 }
