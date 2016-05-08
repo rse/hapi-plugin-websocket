@@ -83,6 +83,9 @@ server.register(HAPIWebSocket, () => {
             plugins: {
                 websocket: {
                     only: true,
+                    create: (wss) => {
+                        /* no-op */
+                    },
                     connect: (wss, ws) => {
                         ws.send(JSON.stringify({ cmd: "WELCOME" }))
                         this.to = setInterval(() => {

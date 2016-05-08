@@ -53,8 +53,13 @@ var register = (server, options, next) => {
                         path:   route.path
                     })
 
-                    /*  on WebSocket connection...  */
+                    /*  hook into WebSocket server creation  */
                     var options = route.settings.plugins.websocket
+                    if (   typeof options === "object"
+                        && typeof options.create === "function")
+                        options.create.call(null, wss)
+
+                    /*  on WebSocket connection...  */
                     wss.on("connection", (ws) => {
                         /*  provide a local app context  */
                         var ctx = {}
