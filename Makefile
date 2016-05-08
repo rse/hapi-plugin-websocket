@@ -31,11 +31,8 @@ bootstrap:
 	@if [ ! -x $(GRUNT) ]; then $(NPM) install; fi
 
 build: bootstrap
-	@$(GRUNT)
 
 clean: bootstrap
-	@$(GRUNT) clean:clean
 
 distclean: bootstrap
-	@$(GRUNT) clean:clean clean:distclean
 
