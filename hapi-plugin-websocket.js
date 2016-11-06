@@ -124,7 +124,7 @@ var register = (server, options, next) => {
             if (!(   typeof request.plugins.websocket === "object"
                   && request.plugins.websocket.wss !== null
                   && request.plugins.websocket.ws  !== null       )) {
-                return reply(Boom.badRequest("HTTP request to a WebSocket-only route not allowed"))
+                return reply(Boom.badRequest("Plain HTTP request to a WebSocket-only route not allowed"))
             }
         }
         return reply.continue()
