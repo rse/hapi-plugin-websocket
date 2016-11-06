@@ -17,7 +17,7 @@
     "homepage": "https://github.com/rse/hapi-plugin-websocket",
     "bugs":     "https://github.com/rse/hapi-plugin-websocket/issues",
     "dependencies": {
-        "boom":        "~4.1.0",
+        "boom":        "~4.2.0",
         "ws":          "~1.1.1"
     },
     "engines": {
