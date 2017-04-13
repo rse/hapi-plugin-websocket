@@ -188,7 +188,7 @@ or WebSocket-only routes. If you want a more elaborate solution,
 License
 -------
 
-Copyright (c) 2016 Ralf S. Engelschall (http://engelschall.com/)
+Copyright (c) 2016-2017 Ralf S. Engelschall (http://engelschall.com/)
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
