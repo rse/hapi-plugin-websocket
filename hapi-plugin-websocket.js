@@ -139,7 +139,7 @@ var register = (server, options, next) => {
 
         /*  allow WebSocket information to be easily retrieved  */
         return () => {
-            return request.plugins.websocket
+            return request.plugins.websocket ? request.plugins.websocket : { ctx: null, wss: null, ws: null }
         }
     }, { apply: true })
 
