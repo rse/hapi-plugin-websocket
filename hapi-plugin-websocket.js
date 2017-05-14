@@ -70,6 +70,7 @@ var register = (server, options, next) => {
                             options.connect.call(ctx, wss, ws)
 
                         /*  hook into WebSocket message retrival  */
+                        let closed = false
                         ws.on("message", (message) => {
                             /*  transform incoming message into a simulated HTTP request  */
                             server.inject({
@@ -81,13 +82,14 @@ var register = (server, options, next) => {
                                 plugins:       { websocket: { ctx: ctx, wss: wss, ws: ws } }
                             }, (response) => {
                                 /*  transform HTTP response into an outgoing message  */
-                                if (response.statusCode !== 204)
+                                if (response.statusCode !== 204 && !closed)
                                     ws.send(response.payload)
                             })
                         })
 
                         /*  hook into WebSocket disconnection  */
                         ws.on("close", () => {
+                            closed = true
                             if (   typeof options === "object"
                                 && typeof options.disconnect === "function")
                                 options.disconnect.call(ctx, wss, ws)
