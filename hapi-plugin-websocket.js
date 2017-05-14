@@ -53,8 +53,26 @@ var register = (server, options, next) => {
                         path:   route.path
                     })
 
-                    /*  hook into WebSocket server creation  */
+                    /*  fetch the per-route options  */
                     var options = route.settings.plugins.websocket
+
+                    /*  optionally enable auto-PING messages  */
+                    if (   typeof options === "object"
+                        && typeof options.autoping === "number"
+                        && options.autoping > 0                ) {
+                        setInterval(() => {
+                            wss.clients.forEach((ws) => {
+                                if (ws.isAlive === false)
+                                    ws.terminate()
+                                else {
+                                    ws.isAlive = false
+                                    ws.ping("", false, true)
+                                }
+                            })
+                        }, options.autoping)
+                    }
+
+                    /*  hook into WebSocket server creation  */
                     if (   typeof options === "object"
                         && typeof options.create === "function")
                         options.create.call(null, wss)
@@ -63,6 +81,14 @@ var register = (server, options, next) => {
                     wss.on("connection", (ws) => {
                         /*  provide a local app context  */
                         var ctx = {}
+
+                        /*  mark alive initially and on WebSocket PONG messages  */
+                        if (   typeof options === "object"
+                            && typeof options.autoping === "number"
+                            && options.autoping > 0                ) {
+                            ws.isAlive = true
+                            ws.on("pong", () => ws.isAlive = true)
+                        }
 
                         /*  hook into WebSocket connection  */
                         if (   typeof options === "object"

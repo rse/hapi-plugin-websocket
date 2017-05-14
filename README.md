@@ -69,7 +69,7 @@ server.register(HAPIWebSocket, () => {
     server.route({
         method: "POST", path: "/baz",
         config: {
-            plugins: { websocket: { only: true } }
+            plugins: { websocket: { only: true, autoping: 30 * 1000 } }
         },
         handler: (request, reply) => {
             reply({ at: "baz", seen: request.payload })
@@ -174,16 +174,27 @@ Notice
 ------
 
 With [NES](https://github.com/hapijs/nes) there is a popular alternative
-HAPI plugin for WebSocket integration. The hapi-plugin-websocket
+HAPI plugin for WebSocket integration. The `hapi-plugin-websocket`
 plugin in contrast is a light-weight solution and was developed
-with especially three distinct features in mind: (1) everything
-is handled through the regular HAPI route API (i.e. no additional
-APIs like `server.subscribe()`), (2) HTTP replies with status code
-204 ("No Content") are explicitly taken into account (i.e. no
-WebSocket response message is sent at all in this case) and (3) HAPI
-routes can be controlled to be plain REST, combined REST+WebSocket
-or WebSocket-only routes. If you want a more elaborate solution,
-[NES](https://github.com/hapijs/nes) could be your choice.
+with especially four distinct features in mind:
+
+1. everything is handled through the regular HAPI route API
+   (i.e. no additional APIs like `server.subscribe()`),
+
+2. HTTP replies with status code 204 ("No Content") are explicitly taken
+   into account (i.e. no WebSocket response message is sent at all in
+   this case),
+
+3. HAPI routes can be controlled to be plain REST, combined REST+WebSocket
+   or WebSocket-only routes, and
+
+4. optionally, WebSocket PING/PONG messages can be exchanged
+   in an interval to automatically keep the connection alive (e.g. over
+   stateful firewalls) and to better recognize dead connections (e.g. in
+   case of network partitions).
+
+If you want a more elaborate solution, [NES](https://github.com/hapijs/nes)
+should be your choice, of course.
 
 License
 -------

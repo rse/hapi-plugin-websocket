@@ -37,7 +37,7 @@ server.register(HAPIWebSocket, () => {
     server.route({
         method: "POST", path: "/baz",
         config: {
-            plugins: { websocket: { only: true } }
+            plugins: { websocket: { only: true, autoping: 30 * 1000 } }
         },
         handler: (request, reply) => {
             reply({ at: "baz", seen: request.payload })
