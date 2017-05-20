@@ -180,14 +180,16 @@ with especially four distinct features in mind:
 1. everything is handled through the regular HAPI route API
    (i.e. no additional APIs like `server.subscribe()`),
 
-2. HTTP replies with status code 204 ("No Content") are explicitly taken
+2. one can use HAPI route paths with arbitrary parameters,
+
+3. HTTP replies with status code 204 ("No Content") are explicitly taken
    into account (i.e. no WebSocket response message is sent at all in
    this case),
 
-3. HAPI routes can be controlled to be plain REST, combined REST+WebSocket
+4. HAPI routes can be controlled to be plain REST, combined REST+WebSocket
    or WebSocket-only routes, and
 
-4. optionally, WebSocket PING/PONG messages can be exchanged
+5. optionally, WebSocket PING/PONG messages can be exchanged
    in an interval to automatically keep the connection alive (e.g. over
    stateful firewalls) and to better recognize dead connections (e.g. in
    case of network partitions).
