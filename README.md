@@ -182,14 +182,16 @@ with especially four distinct features in mind:
 
 2. one can use HAPI route paths with arbitrary parameters,
 
-3. HTTP replies with status code 204 ("No Content") are explicitly taken
+3. one can restrict a HAPI route to a particular WebSocket subprotocol,
+
+4. HTTP replies with status code 204 ("No Content") are explicitly taken
    into account (i.e. no WebSocket response message is sent at all in
    this case),
 
-4. HAPI routes can be controlled to be plain REST, combined REST+WebSocket
+5. HAPI routes can be controlled to be plain REST, combined REST+WebSocket
    or WebSocket-only routes, and
 
-5. optionally, WebSocket PING/PONG messages can be exchanged
+6. optionally, WebSocket PING/PONG messages can be exchanged
    in an interval to automatically keep the connection alive (e.g. over
    stateful firewalls) and to better recognize dead connections (e.g. in
    case of network partitions).
