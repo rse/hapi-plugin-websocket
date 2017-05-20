@@ -17,13 +17,19 @@
     "homepage": "https://github.com/rse/hapi-plugin-websocket",
     "bugs":     "https://github.com/rse/hapi-plugin-websocket/issues",
     "devDependencies": {
-        "hapi":        "~16.1.1"
+        "hapi":         "~16.1.1",
+        "babel-eslint": "~7.2.3",
+        "eslint":       "~3.19.0"
     },
     "dependencies": {
-        "boom":        "~4.3.1",
-        "ws":          "~1.1.4"
+        "urijs":        "~1.18.10",
+        "boom":         "~4.3.1",
+        "ws":           "~3.0.0"
     },
     "engines": {
-        "node":        ">=4.0.0"
+        "node":         ">=6.0.0"
+    },
+    "scripts": {
+        "prepublish":   "eslint --config eslint.json hapi-plugin-websocket.js"
     }
 }

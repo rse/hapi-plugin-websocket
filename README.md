@@ -33,7 +33,7 @@ The following sample server shows all features at once:
 ```js
 var Boom          = require("boom")
 var HAPI          = require("hapi")
-var HAPIWebSocket = require("./hapi-plugin-websocket")
+var HAPIWebSocket = require("hapi-plugin-websocket")
 
 var server = new HAPI.Server()
 server.connection({ address: "127.0.0.1", port: 12345 })
@@ -80,12 +80,11 @@ server.register(HAPIWebSocket, () => {
     server.route({
         method: "POST", path: "/quux",
         config: {
+            payload: { output: "data", parse: true, allow: "application/json" },
             plugins: {
                 websocket: {
                     only: true,
-                    create: (wss) => {
-                        /* no-op */
-                    },
+                    subprotocol: "quux/1.0",
                     connect: (wss, ws) => {
                         ws.send(JSON.stringify({ cmd: "WELCOME" }))
                         this.to = setInterval(() => {
@@ -107,9 +106,9 @@ server.register(HAPIWebSocket, () => {
             if (request.payload.cmd === "PING")
                 return reply({ result: "PONG" })
             else if (request.payload.cmd === "AWAKE-ALL") {
-                var wss = request.websocket().wss
-                wss.clients.forEach((ws) => {
-                    ws.send(JSON.stringify({ cmd: "AWAKE" }))
+                var peers = request.websocket().peers
+                peers.forEach((peer) => {
+                    peer.send(JSON.stringify({ cmd: "AWAKE" }))
                 })
                 return reply().code(204)
             }
@@ -158,7 +157,7 @@ $ wscat --connect ws://127.0.0.1:12345/baz
 < {"at":"baz","seen":{"foo":7}}
 
 # access the full-featured exclusive WebSocket route via WebSockets
-$ wscat --connect ws://127.0.0.1:12345/quux
+$ wscat --subprotocol "quux/1.0"--connect ws://127.0.0.1:12345/quux
 < {"cmd":"WELCOME"}
 > {"cmd":"PING"}
 < {"result":"PONG"}

@@ -23,107 +23,195 @@
 */
 
 /*  external dependencies  */
-var Boom = require("boom")
-var WS   = require("ws")
+const URI     = require("urijs")
+const hoek    = require("hoek")
+const Boom    = require("boom")
+const WS      = require("ws")
 
 /*  internal dependencies  */
-var Package = require("./package.json")
+const Package = require("./package.json")
 
-/*  the HAPI plugin register function  */
-var register = (server, options, next) => {
+/*  the HAPI plugin registration function  */
+const register = (server, pluginOptions, next) => {
+    /*  determine plugin registration options  */
+    pluginOptions = hoek.applyToDefaults({
+        onServerCreate: function () {}
+    }, pluginOptions, true)
+
+    /*  check whether a HAPI route has WebSocket enabled  */
+    const hasWebSocketEnabled = (route) => {
+        return (
+               typeof route === "object"
+            && typeof route.settings === "object"
+            && typeof route.settings.plugins === "object"
+            && typeof route.settings.plugins.websocket !== "undefined"
+        )
+    }
+
+    /*  determine the route-specific options of WebSocket-enabled route  */
+    const fetchRouteOptions = (route) => {
+        let routeOptions = route.settings.plugins.websocket
+        if (typeof routeOptions !== "object")
+            routeOptions = {}
+        return routeOptions
+    }
+
+    /*  find a particular route for an HTTP request  */
+    const findRoute = (req) => {
+        let route  = null
+
+        /*  determine request parameters  */
+        let url    = URI.parse(req.url)
+        let host   = typeof req.headers.host === "string" ? req.headers.host : undefined
+        let path   = url.path
+        let protos = (req.headers["sec-websocket-protocol"] || "").split(/, */)
+
+        /*  iterate over all HAPI connections...  */
+        server.connections.forEach((connection) => {
+            if (route !== null)
+                return
+
+            /*  ...and find a matching route on each connection  */
+            let matched = connection.match("POST", path, host)
+            if (matched) {
+                /*  we accept only WebSocket-enabled ones  */
+                if (!hasWebSocketEnabled(matched))
+                    return
+
+                /*  optionally, we accept only the correct WebSocket subprotocol  */
+                let routeOptions = fetchRouteOptions(matched)
+                if (routeOptions.subprotocol && protos.indexOf(routeOptions.subprotocol) === -1)
+                    return
+
+                /*  take this route  */
+                route = matched
+            }
+        })
+
+        return route
+    }
+
     /*  perform WebSocket handling on HAPI start  */
-    server.ext({ type: "onPostStart", method: function (server, next) {
+    server.ext({ type: "onPostStart", method: (server, next) => {
 
-        /*  iterate over all routes  */
-        var connections = server.table()
-        connections.forEach((connection) => {
-            connection.table.forEach((route) => {
-                /*  for all WebSocket enabled routes...  */
-                if (   typeof route.settings === "object"
-                    && typeof route.settings.plugins === "object"
-                    && typeof route.settings.plugins.websocket !== "undefined") {
-
-                    /*  sanity check route  */
+        /*  sanity check all HAPI route definitions  */
+        server.connections.forEach((connection) => {
+            connection.table().forEach((route) => {
+                /*  for all WebSocket-enabled routes...  */
+                if (hasWebSocketEnabled(route)) {
+                    /*  make sure it is defined for POST method  */
                     if (route.method.toUpperCase() !== "POST")
-                        throw new Error("WebSocket can be enabled on POST routes only")
-                    if (route.path.match(/[{}]/))
-                        throw new Error("WebSocket routes cannot have paths with parameters")
-
-                    /*  establish a new WebSocket listener for the route  */
-                    var wss = new WS.Server({
-                        server: server.listener,
-                        path:   route.path
-                    })
-
-                    /*  fetch the per-route options  */
-                    var options = route.settings.plugins.websocket
-
-                    /*  optionally enable auto-PING messages  */
-                    if (   typeof options === "object"
-                        && typeof options.autoping === "number"
-                        && options.autoping > 0                ) {
-                        setInterval(() => {
-                            wss.clients.forEach((ws) => {
-                                if (ws.isAlive === false)
-                                    ws.terminate()
-                                else {
-                                    ws.isAlive = false
-                                    ws.ping("", false, true)
-                                }
-                            })
-                        }, options.autoping)
-                    }
-
-                    /*  hook into WebSocket server creation  */
-                    if (   typeof options === "object"
-                        && typeof options.create === "function")
-                        options.create.call(null, wss)
-
-                    /*  on WebSocket connection...  */
-                    wss.on("connection", (ws) => {
-                        /*  provide a local app context  */
-                        var ctx = {}
-
-                        /*  mark alive initially and on WebSocket PONG messages  */
-                        if (   typeof options === "object"
-                            && typeof options.autoping === "number"
-                            && options.autoping > 0                ) {
-                            ws.isAlive = true
-                            ws.on("pong", () => ws.isAlive = true)
-                        }
-
-                        /*  hook into WebSocket connection  */
-                        if (   typeof options === "object"
-                            && typeof options.connect === "function")
-                            options.connect.call(ctx, wss, ws)
-
-                        /*  hook into WebSocket message retrival  */
-                        let closed = false
-                        ws.on("message", (message) => {
-                            /*  transform incoming message into a simulated HTTP request  */
-                            server.inject({
-                                method:        "POST",
-                                url:           ws.upgradeReq.url,
-                                headers:       ws.upgradeReq.headers,
-                                remoteAddress: ws.upgradeReq.socket.remoteAddress,
-                                payload:       message,
-                                plugins:       { websocket: { ctx: ctx, wss: wss, ws: ws } }
-                            }, (response) => {
-                                /*  transform HTTP response into an outgoing message  */
-                                if (response.statusCode !== 204 && !closed)
-                                    ws.send(response.payload)
-                            })
-                        })
-
-                        /*  hook into WebSocket disconnection  */
-                        ws.on("close", () => {
-                            closed = true
-                            if (   typeof options === "object"
-                                && typeof options.disconnect === "function")
-                                options.disconnect.call(ctx, wss, ws)
-                        })
-                    })
+                        throw new Error("WebSocket protocol can be enabled on POST routes only")
                 }
+            })
+        })
+
+        /*  establish a WebSocket server and attach it to the
+            Node HTTP server underlying the HAPI server  */
+        let wss = new WS.Server({
+            /*  the underyling HTTP server  */
+            server: server.listener,
+
+            /*  disable per-server client tracking, as we have to perform it per-route  */
+            clientTracking: false,
+
+            /*  ensure that incoming WebSocket requests have a corresponding HAPI route  */
+            verifyClient: ({ req }, result) => {
+                let route = findRoute(req)
+                if (route)
+                    result(true)
+                else
+                    result(false, 404, "No WebSocket-enabled route found")
+            }
+        })
+        pluginOptions.onServerCreate(wss)
+
+        /*  per-route peer (aka client) tracking  */
+        let routePeers = {}
+
+        /*  per-route timers  */
+        let routeTimers = {}
+
+        /*  on WebSocket connection (actually HTTP upgrade events)...  */
+        wss.on("connection", (ws, req) => {
+            /*  find the (previously already successfully matched) HAPI route  */
+            let route = findRoute(req)
+
+            /*  fetch the per-route options  */
+            var routeOptions = fetchRouteOptions(route)
+
+            /*  determine a route-specific identifier  */
+            let routeId = `${route.method}:${route.path}`
+            if (route.vhost)
+                routeId += `:${route.vhost}`
+            if (routeOptions.subprotocol)
+                routeId += `:{routeOptions.subprotocol}`
+
+            /*  track the peer per-route  */
+            if (routePeers[routeId] === undefined)
+                routePeers[routeId] = []
+            let peers = routePeers[routeId]
+            peers.push(ws)
+
+            /*  optionally enable automatic WebSocket PING messages  */
+            if (typeof routeOptions.autoping === "number" && routeOptions.autoping > 0) {
+                /*  lazy setup of route-specific interval timer  */
+                if (routeTimers[routeId] === undefined) {
+                    routeTimers[routeId] = setInterval(() => {
+                        peers.forEach((ws) => {
+                            if (ws.isAlive === false)
+                                ws.terminate()
+                            else {
+                                ws.isAlive = false
+                                ws.ping("", false, true)
+                            }
+                        })
+                    }, routeOptions.autoping)
+                }
+
+                /*  mark peer alive initially and on WebSocket PONG messages  */
+                ws.isAlive = true
+                ws.on("pong", () => {
+                    ws.isAlive = true
+                })
+            }
+
+            /*  provide a local context  */
+            var ctx = {}
+
+            /*  allow application to hook into WebSocket connection  */
+            if (typeof routeOptions.connect === "function")
+                routeOptions.connect.call(ctx, wss, ws)
+
+            /*  hook into WebSocket message retrival  */
+            let closed = false
+            ws.on("message", (message) => {
+                /*  transform incoming WebSocket message into a simulated HTTP request  */
+                server.inject({
+                    method:        "POST",
+                    url:           req.url,
+                    headers:       req.headers,
+                    remoteAddress: req.socket.remoteAddress,
+                    payload:       message,
+                    plugins:       { websocket: { ctx: ctx, wss: wss, ws: ws, req: req, peers: peers } }
+                }, (response) => {
+                    /*  transform simulated HTTP response into an outgoing WebSocket message  */
+                    if (response.statusCode !== 204 && !closed)
+                        ws.send(response.payload)
+                })
+            })
+
+            /*  hook into WebSocket disconnection  */
+            ws.on("close", () => {
+                closed = true
+
+                /*  allow application to hook into WebSocket disconnection  */
+                if (typeof routeOptions.disconnect === "function")
+                    routeOptions.disconnect.call(ctx, wss, ws)
+
+                /*  stop tracking the peer  */
+                let idx = routePeers[routeId].indexOf(ws)
+                routePeers[routeId].splice(idx, 1)
             })
         })
 
@@ -131,17 +219,23 @@ var register = (server, options, next) => {
         next()
     }})
 
-    /*  decorate the request object  */
-    server.decorate("request", "websocket", (request) => {
-        /*  make available remote WebSocket information  */
-        if (typeof request.plugins.websocket !== "undefined") {
-            request.info.remoteAddress = request.plugins.websocket.ws.upgradeReq.socket.remoteAddress
-            request.info.remotePort    = request.plugins.websocket.ws.upgradeReq.socket.remotePort
+    /*  make available remote WebSocket information  */
+    server.ext({ type: "onPreHandler", method: (request, reply) => {
+        if (typeof request.plugins.websocket === "object") {
+            request.info.remoteAddress = request.plugins.websocket.req.socket.remoteAddress
+            request.info.remotePort    = request.plugins.websocket.req.socket.remotePort
         }
+        return reply.continue()
+    }})
 
-        /*  allow WebSocket information to be easily retrieved  */
+    /*  allow WebSocket information to be easily retrieved  */
+    server.decorate("request", "websocket", (request) => {
         return () => {
-            return request.plugins.websocket ? request.plugins.websocket : { ctx: null, wss: null, ws: null }
+            return (
+                typeof request.plugins.websocket === "object" ?
+                request.plugins.websocket :
+                { ctx: null, wss: null, ws: null, req: null, peers: null }
+            )
         }
     }, { apply: true })
 
@@ -160,7 +254,7 @@ var register = (server, options, next) => {
         return reply.continue()
     }})
 
-    /*  continue processing  */
+    /*  continue plugin processing  */
     next()
 }
 

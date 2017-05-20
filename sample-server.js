@@ -48,12 +48,11 @@ server.register(HAPIWebSocket, () => {
     server.route({
         method: "POST", path: "/quux",
         config: {
+            payload: { output: "data", parse: true, allow: "application/json" },
             plugins: {
                 websocket: {
                     only: true,
-                    create: (wss) => {
-                        /* no-op */
-                    },
+                    subprotocol: "quux/1.0",
                     connect: (wss, ws) => {
                         ws.send(JSON.stringify({ cmd: "WELCOME" }))
                         this.to = setInterval(() => {
@@ -75,9 +74,9 @@ server.register(HAPIWebSocket, () => {
             if (request.payload.cmd === "PING")
                 return reply({ result: "PONG" })
             else if (request.payload.cmd === "AWAKE-ALL") {
-                var wss = request.websocket().wss
-                wss.clients.forEach((ws) => {
-                    ws.send(JSON.stringify({ cmd: "AWAKE" }))
+                var peers = request.websocket().peers
+                peers.forEach((peer) => {
+                    peer.send(JSON.stringify({ cmd: "AWAKE" }))
                 })
                 return reply().code(204)
             }
