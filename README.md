@@ -172,10 +172,10 @@ $ wscat --subprotocol "quux/1.0"--connect ws://127.0.0.1:12345/quux
 Notice
 ------
 
-With [NES](https://github.com/hapijs/nes) there is a popular alternative
+With [NES](https://github.com/hapijs/nes) there is a popular and elaborated alternative
 HAPI plugin for WebSocket integration. The `hapi-plugin-websocket`
 plugin in contrast is a light-weight solution and was developed
-with especially four distinct features in mind:
+with especially six distinct features in mind:
 
 1. everything is handled through the regular HAPI route API
    (i.e. no additional APIs like `server.subscribe()`),
