@@ -46,6 +46,8 @@ var register = (server, options, next) => {
                     /*  sanity check route  */
                     if (route.method.toUpperCase() !== "POST")
                         throw new Error("WebSocket can be enabled on POST routes only")
+                    if (route.path.match(/[{}]/))
+                        throw new Error("WebSocket routes cannot have paths with parameters")
 
                     /*  establish a new WebSocket listener for the route  */
                     var wss = new WS.Server({
