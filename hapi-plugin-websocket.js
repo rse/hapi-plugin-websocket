@@ -35,7 +35,7 @@ const Package = require("./package.json")
 const register = (server, pluginOptions, next) => {
     /*  determine plugin registration options  */
     pluginOptions = hoek.applyToDefaults({
-        onServerCreate: function () {}
+        create: function () {}
     }, pluginOptions, true)
 
     /*  check whether a HAPI route has WebSocket enabled  */
@@ -53,6 +53,13 @@ const register = (server, pluginOptions, next) => {
         let routeOptions = route.settings.plugins.websocket
         if (typeof routeOptions !== "object")
             routeOptions = {}
+        routeOptions = hoek.applyToDefaults({
+            only:        false,
+            subprotocol: null,
+            connect:     function () {},
+            disconnect:  function () {},
+            autoping:    0
+        }, routeOptions, true)
         return routeOptions
     }
 
@@ -80,7 +87,8 @@ const register = (server, pluginOptions, next) => {
 
                 /*  optionally, we accept only the correct WebSocket subprotocol  */
                 let routeOptions = fetchRouteOptions(matched)
-                if (routeOptions.subprotocol && protos.indexOf(routeOptions.subprotocol) === -1)
+                if (   routeOptions.subprotocol !== null
+                    && protos.indexOf(routeOptions.subprotocol) === -1)
                     return
 
                 /*  take this route  */
@@ -144,7 +152,7 @@ const register = (server, pluginOptions, next) => {
             let routeId = `${route.method}:${route.path}`
             if (route.vhost)
                 routeId += `:${route.vhost}`
-            if (routeOptions.subprotocol)
+            if (routeOptions.subprotocol !== null)
                 routeId += `:{routeOptions.subprotocol}`
 
             /*  track the peer per-route  */
@@ -154,7 +162,7 @@ const register = (server, pluginOptions, next) => {
             peers.push(ws)
 
             /*  optionally enable automatic WebSocket PING messages  */
-            if (typeof routeOptions.autoping === "number" && routeOptions.autoping > 0) {
+            if (routeOptions.autoping > 0) {
                 /*  lazy setup of route-specific interval timer  */
                 if (routeTimers[routeId] === undefined) {
                     routeTimers[routeId] = setInterval(() => {
@@ -180,8 +188,7 @@ const register = (server, pluginOptions, next) => {
             let ctx = {}
 
             /*  allow application to hook into WebSocket connection  */
-            if (typeof routeOptions.connect === "function")
-                routeOptions.connect.call(ctx, wss, ws)
+            routeOptions.connect.call(ctx, wss, ws)
 
             /*  hook into WebSocket message retrival  */
             let closed = false
@@ -215,8 +222,7 @@ const register = (server, pluginOptions, next) => {
                 closed = true
 
                 /*  allow application to hook into WebSocket disconnection  */
-                if (typeof routeOptions.disconnect === "function")
-                    routeOptions.disconnect.call(ctx, wss, ws)
+                routeOptions.disconnect.call(ctx, wss, ws)
 
                 /*  stop tracking the peer  */
                 let idx = routePeers[routeId].indexOf(ws)
