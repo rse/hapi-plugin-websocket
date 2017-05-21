@@ -219,8 +219,8 @@ const register = (server, pluginOptions, next) => {
         next()
     }})
 
-    /*  make available remote WebSocket information  */
-    server.ext({ type: "onPreHandler", method: (request, reply) => {
+    /*  make available to HAPI request the remote WebSocket information  */
+    server.ext({ type: "onRequest", method: (request, reply) => {
         if (typeof request.plugins.websocket === "object") {
             request.info.remoteAddress = request.plugins.websocket.req.socket.remoteAddress
             request.info.remotePort    = request.plugins.websocket.req.socket.remotePort
