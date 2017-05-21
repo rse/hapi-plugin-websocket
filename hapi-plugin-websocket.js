@@ -188,12 +188,21 @@ const register = (server, pluginOptions, next) => {
             ws.on("message", (message) => {
                 /*  transform incoming WebSocket message into a simulated HTTP request  */
                 server.inject({
+                    /*  simulate the hard-coded POST request  */
                     method:        "POST",
+
+                    /*  pass-through initial HTTP request information  */
                     url:           req.url,
                     headers:       req.headers,
                     remoteAddress: req.socket.remoteAddress,
+
+                    /*  provide WebSocket message as HTTP POST payload  */
                     payload:       message,
-                    plugins:       { websocket: { ctx: ctx, wss: wss, ws: ws, req: req, peers: peers } }
+
+                    /*  provide WebSocket plugin context information  */
+                    plugins: {
+                        websocket: { ctx: ctx, wss: wss, ws: ws, req: req, peers: peers }
+                    }
                 }, (response) => {
                     /*  transform simulated HTTP response into an outgoing WebSocket message  */
                     if (response.statusCode !== 204 && !closed)
