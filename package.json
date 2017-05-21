@@ -31,6 +31,6 @@
         "node":         ">=6.0.0"
     },
     "scripts": {
-        "prepublish":   "eslint --config eslint.json hapi-plugin-websocket.js"
+        "prepublish":   "eslint --config eslint.json hapi-plugin-websocket.js sample-server.js"
     }
 }

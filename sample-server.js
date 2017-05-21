@@ -1,9 +1,9 @@
 
-var Boom          = require("boom")
-var HAPI          = require("hapi")
-var HAPIWebSocket = require("./hapi-plugin-websocket")
+const Boom          = require("boom")
+const HAPI          = require("hapi")
+const HAPIWebSocket = require("./hapi-plugin-websocket")
 
-var server = new HAPI.Server()
+let server = new HAPI.Server()
 server.connection({ address: "127.0.0.1", port: 12345 })
 server.register(HAPIWebSocket)
 
@@ -11,7 +11,7 @@ server.register(HAPIWebSocket)
 server.route({
     method: "POST", path: "/foo",
     config: {
-        payload: { output: "data", parse: true, allow: "application/json" },
+        payload: { output: "data", parse: true, allow: "application/json" }
     },
     handler: (request, reply) => {
         reply({ at: "foo", seen: request.payload })
@@ -59,7 +59,7 @@ server.route({
                         ws.send(JSON.stringify({ cmd: "PING" }))
                     }, 5000)
                 },
-                disconnect: (wss, ws) => {
+                disconnect: (/* wss, ws */) => {
                     if (this.to !== null) {
                         clearTimeout(this.to)
                         this.to = null
