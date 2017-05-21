@@ -201,7 +201,7 @@ const register = (server, pluginOptions, next) => {
 
                     /*  provide WebSocket plugin context information  */
                     plugins: {
-                        websocket: { ctx: ctx, wss: wss, ws: ws, req: req, peers: peers }
+                        websocket: { used: true, ctx: ctx, wss: wss, ws: ws, req: req, peers: peers }
                     }
                 }, (response) => {
                     /*  transform simulated HTTP response into an outgoing WebSocket message  */
@@ -243,7 +243,7 @@ const register = (server, pluginOptions, next) => {
             return (
                 typeof request.plugins.websocket === "object" ?
                 request.plugins.websocket :
-                { ctx: null, wss: null, ws: null, req: null, peers: null }
+                { used: false, ctx: null, wss: null, ws: null, req: null, peers: null }
             )
         }
     }, { apply: true })
@@ -255,8 +255,7 @@ const register = (server, pluginOptions, next) => {
             && request.route.settings.plugins.websocket.only === true      ) {
             /*  ...but this is not a WebSocket originated request  */
             if (!(   typeof request.plugins.websocket === "object"
-                  && request.plugins.websocket.wss !== null
-                  && request.plugins.websocket.ws  !== null       )) {
+                  && request.plugins.websocket.used === true      )) {
                 return reply(Boom.badRequest("Plain HTTP request to a WebSocket-only route not allowed"))
             }
         }
