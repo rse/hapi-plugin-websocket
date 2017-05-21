@@ -70,7 +70,7 @@ server.route({
         plugins: { websocket: true }
     },
     handler: (request, reply) => {
-        let mode = request.websocket().mode
+        let { mode } = request.websocket()
         reply({ at: "bar", mode: mode, seen: request.payload })
     }
 })
@@ -151,7 +151,7 @@ $ curl -X POST --header 'Content-type: application/json' \
 # access the combined REST/WebSocket route via REST
 $ curl -X POST --header 'Content-type: application/json' \
   --data '{ "foo": 42 }' http://127.0.0.1:12345/bar
-{"at":"bar","type":"rest","seen":{"foo":42}}
+{"at":"bar","mode":"rest","seen":{"foo":42}}
 
 # access the exclusive WebSocket route via REST
 $ curl -X POST --header 'Content-type: application/json' --data '{ "foo": 42 }' http://127.0.0.1:12345/baz
@@ -160,9 +160,9 @@ $ curl -X POST --header 'Content-type: application/json' --data '{ "foo": 42 }' 
 # access the combined REST/WebSocket route via WebSocket
 $ wscat --connect ws://127.0.0.1:12345/bar
 > { "foo": 42 }
-< {"at":"bar","type":"websocket","seen":{"foo":42}}
+< {"at":"bar","mode":"websocket","seen":{"foo":42}}
 > { "foo": 7 }
-< {"at":"bar","type":"websocket","seen":{"foo":7}}
+< {"at":"bar","mode":"websocket","seen":{"foo":7}}
 
 # access the exclusive WebSocket route via WebSocket
 $ wscat --connect ws://127.0.0.1:12345/baz

@@ -38,7 +38,7 @@ server.route({
         plugins: { websocket: true }
     },
     handler: (request, reply) => {
-        let mode = request.websocket().mode
+        let { mode } = request.websocket()
         reply({ at: "bar", mode: mode, seen: request.payload })
     }
 })
