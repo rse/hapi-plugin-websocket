@@ -34,10 +34,22 @@ The following sample server shows all features at once:
 const Boom          = require("boom")
 const HAPI          = require("hapi")
 const HAPIWebSocket = require("hapi-plugin-websocket")
+const HAPIAuthBasic = require("hapi-auth-basic")
 
 let server = new HAPI.Server()
 server.connection({ address: "127.0.0.1", port: 12345 })
+
 server.register(HAPIWebSocket)
+server.register(HAPIAuthBasic)
+
+server.auth.strategy("basic", "basic", {
+    validateFunc: (request, username, password, callback) => {
+        if (username === "foo" && password === "bar")
+            callback(null, true, { username: username })
+        else
+            callback(Boom.unauthorized("invalid username/password"), false)
+    }
+})
 
 /*  plain REST route  */
 server.route({
@@ -58,10 +70,8 @@ server.route({
         plugins: { websocket: true }
     },
     handler: (request, reply) => {
-        if (request.websocket().used)
-            reply({ at: "bar", type: "websocket", seen: request.payload })
-        else
-            reply({ at: "bar", type: "rest", seen: request.payload })
+        let mode = request.websocket().mode
+        reply({ at: "bar", mode: mode, seen: request.payload })
     }
 })
 
@@ -81,12 +91,13 @@ server.route({
     method: "POST", path: "/quux",
     config: {
         payload: { output: "data", parse: true, allow: "application/json" },
+        auth: { mode: "required", strategy: "basic" },
         plugins: {
             websocket: {
                 only: true,
+                initially: true,
                 subprotocol: "quux/1.0",
                 connect: ({ ws }) => {
-                    ws.send(JSON.stringify({ cmd: "WELCOME" }))
                     this.to = setInterval(() => {
                         ws.send(JSON.stringify({ cmd: "PING" }))
                     }, 5000)
@@ -101,6 +112,11 @@ server.route({
         }
     },
     handler: (request, reply) => {
+        let { initially, ws } = request.websocket()
+        if (initially) {
+            ws.send(JSON.stringify({ cmd: "HELLO", arg: request.auth.credentials.username }))
+            return reply().code(204)
+        }
         if (typeof request.payload.cmd !== "string")
             return reply(Boom.badRequest("invalid request"))
         if (request.payload.cmd === "PING")
@@ -156,8 +172,8 @@ $ wscat --connect ws://127.0.0.1:12345/baz
 < {"at":"baz","seen":{"foo":7}}
 
 # access the full-featured exclusive WebSocket route via WebSockets
-$ wscat --subprotocol "quux/1.0"--connect ws://127.0.0.1:12345/quux
-< {"cmd":"WELCOME"}
+$ wscat --subprotocol "quux/1.0" --auth foo:bar --connect ws://127.0.0.1:12345/quux
+< {"cmd":"HELLO",arg:"foo"}
 > {"cmd":"PING"}
 < {"result":"PONG"}
 > {"cmd":"AWAKE-ALL"}
@@ -223,6 +239,7 @@ server.route({
                 only: true,
                 autoping: 10 * 1000,
                 subprotocol: "foo/1.0",
+                initially: true,
                 connect: ({ ctx, wss, ws, req, peers }) => {
                     ...
                     ws.send(...)
@@ -235,7 +252,7 @@ server.route({
         }
     },
     handler: (request, reply) => {
-        let { used, ctx, wss, ws, req, peers } = request.websocket()
+        let { mode, ctx, wss, ws, req, peers, initially } = request.websocket()
         ...
         reply(...)
     }

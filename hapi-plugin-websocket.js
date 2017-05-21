@@ -58,7 +58,8 @@ const register = (server, pluginOptions, next) => {
             subprotocol: null,
             connect:     function () {},
             disconnect:  function () {},
-            autoping:    0
+            autoping:    0,
+            initially:   false
         }, routeOptions, true)
         return routeOptions
     }
@@ -190,6 +191,40 @@ const register = (server, pluginOptions, next) => {
             /*  allow application to hook into WebSocket connection  */
             routeOptions.connect.call(ctx, { ctx, wss, ws, req, peers })
 
+            /*  optionally inject an empty initial message  */
+            if (routeOptions.initially) {
+                /*  transform incoming WebSocket message into a simulated HTTP request  */
+                server.inject({
+                    /*  simulate the hard-coded POST request  */
+                    method:        "POST",
+
+                    /*  pass-through initial HTTP request information  */
+                    url:           req.url,
+                    headers:       req.headers,
+                    remoteAddress: req.socket.remoteAddress,
+
+                    /*  provide an empty HTTP POST payload  */
+                    payload:       null,
+
+                    /*  provide WebSocket plugin context information  */
+                    plugins: {
+                        websocket: { mode: "websocket", ctx, wss, ws, req, peers, initially: true }
+                    }
+                }, (response) => {
+                    /*  any HTTP redirection, client error or server error response
+                        leads to an immediate WebSocket connection drop  */
+                    if (response.statusCode >= 300) {
+                        let annotation = `(HAPI handler reponded with HTTP status ${response.statusCode})`
+                        if (response.statusCode < 400)
+                            ws.close(1002, `Protocol Error ${annotation}`)
+                        else if (response.statusCode < 500)
+                            ws.close(1008, `Policy Violation ${annotation}`)
+                        else
+                            ws.close(1011, `Server Error ${annotation}`)
+                    }
+                })
+            }
+
             /*  hook into WebSocket message retrival  */
             let closed = false
             ws.on("message", (message) => {
@@ -208,7 +243,7 @@ const register = (server, pluginOptions, next) => {
 
                     /*  provide WebSocket plugin context information  */
                     plugins: {
-                        websocket: { used: true, ctx, wss, ws, req, peers }
+                        websocket: { mode: "websocket", ctx, wss, ws, req, peers }
                     }
                 }, (response) => {
                     /*  transform simulated HTTP response into an outgoing WebSocket message  */
@@ -249,7 +284,7 @@ const register = (server, pluginOptions, next) => {
             return (
                 typeof request.plugins.websocket === "object" ?
                 request.plugins.websocket :
-                { used: false, ctx: null, wss: null, ws: null, req: null, peers: null }
+                { mode: "http", ctx: null, wss: null, ws: null, req: null, peers: null }
             )
         }
     }, { apply: true })
@@ -261,7 +296,7 @@ const register = (server, pluginOptions, next) => {
             && request.route.settings.plugins.websocket.only === true      ) {
             /*  ...but this is not a WebSocket originated request  */
             if (!(   typeof request.plugins.websocket === "object"
-                  && request.plugins.websocket.used === true      )) {
+                  && request.plugins.websocket.mode === "websocket")) {
                 return reply(Boom.badRequest("Plain HTTP request to a WebSocket-only route not allowed"))
             }
         }
