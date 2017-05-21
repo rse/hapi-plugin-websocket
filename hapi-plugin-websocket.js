@@ -132,7 +132,7 @@ const register = (server, pluginOptions, next) => {
                     result(false, 404, "No suitable WebSocket-enabled HAPI route found")
             }
         })
-        pluginOptions.onServerCreate(wss)
+        pluginOptions.create(wss)
 
         /*  per-route peer (aka client) tracking  */
         let routePeers = {}
