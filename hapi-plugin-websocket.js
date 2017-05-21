@@ -138,7 +138,7 @@ const register = (server, pluginOptions, next) => {
             let route = findRoute(req)
 
             /*  fetch the per-route options  */
-            var routeOptions = fetchRouteOptions(route)
+            let routeOptions = fetchRouteOptions(route)
 
             /*  determine a route-specific identifier  */
             let routeId = `${route.method}:${route.path}`
@@ -177,7 +177,7 @@ const register = (server, pluginOptions, next) => {
             }
 
             /*  provide a local context  */
-            var ctx = {}
+            let ctx = {}
 
             /*  allow application to hook into WebSocket connection  */
             if (typeof routeOptions.connect === "function")
