@@ -171,6 +171,77 @@ $ wscat --subprotocol "quux/1.0"--connect ws://127.0.0.1:12345/quux
 Application Programming Interface
 ---------------------------------
 
+- **Import Module**:
+
+```js
+const HAPIWebSocket = require("hapi-plugin-websocket")
+```
+
+- **Register Module in HAPI** (simple variant):
+
+```js
+server.register(HAPIWebSocket)
+```
+
+- **Register Module in HAPI** (complex variant):
+
+```js
+server.register({
+    register: HAPIWebSocket,
+    options: {
+        create: (wss) => {
+            ...
+        }
+    }
+})
+```
+
+- **Register WebSocket-enabled Route** (simple variant):
+
+```js
+server.route({
+    method: "POST",
+    path: "/foo",
+    config: {
+        plugins: { websocket: true }
+    },
+    handler: (request, reply) => {
+        reply(...)
+    }
+})
+```
+
+- **Register WebSocket-enabled Route** (complex variant):
+
+```js
+server.route({
+    method: "POST",
+    path: "/foo",
+    config: {
+        plugins: {
+            websocket: {
+                only: true,
+                autoping: 10 * 1000,
+                subprotocol: "foo/1.0",
+                connect: (wss, ws) => {
+                    ...
+                    ws.send(...)
+                    ...
+                },
+                disconnect: (wss, ws) => {
+                    ...
+                }
+            }
+        }
+    },
+    handler: (request, reply) => {
+        let { used, ctx, wss, ws, req, peers } = request.websocket()
+        ...
+        reply(...)
+    }
+})
+```
+
 Notice
 ------
 
