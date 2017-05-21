@@ -121,7 +121,7 @@ const register = (server, pluginOptions, next) => {
                 if (route)
                     result(true)
                 else
-                    result(false, 404, "No WebSocket-enabled route found")
+                    result(false, 404, "No corresponding WebSocket-enabled HAPI route found")
             }
         })
         pluginOptions.onServerCreate(wss)
