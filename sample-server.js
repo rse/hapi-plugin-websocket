@@ -53,13 +53,13 @@ server.route({
             websocket: {
                 only: true,
                 subprotocol: "quux/1.0",
-                connect: (wss, ws) => {
+                connect: ({ ws }) => {
                     ws.send(JSON.stringify({ cmd: "WELCOME" }))
                     this.to = setInterval(() => {
                         ws.send(JSON.stringify({ cmd: "PING" }))
                     }, 5000)
                 },
-                disconnect: (/* wss, ws */) => {
+                disconnect: () => {
                     if (this.to !== null) {
                         clearTimeout(this.to)
                         this.to = null

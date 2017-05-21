@@ -188,7 +188,7 @@ const register = (server, pluginOptions, next) => {
             let ctx = {}
 
             /*  allow application to hook into WebSocket connection  */
-            routeOptions.connect.call(ctx, wss, ws)
+            routeOptions.connect.call(ctx, { ctx, wss, ws, req, peers })
 
             /*  hook into WebSocket message retrival  */
             let closed = false
@@ -208,7 +208,7 @@ const register = (server, pluginOptions, next) => {
 
                     /*  provide WebSocket plugin context information  */
                     plugins: {
-                        websocket: { used: true, ctx: ctx, wss: wss, ws: ws, req: req, peers: peers }
+                        websocket: { used: true, ctx, wss, ws, req, peers }
                     }
                 }, (response) => {
                     /*  transform simulated HTTP response into an outgoing WebSocket message  */
@@ -222,7 +222,7 @@ const register = (server, pluginOptions, next) => {
                 closed = true
 
                 /*  allow application to hook into WebSocket disconnection  */
-                routeOptions.disconnect.call(ctx, wss, ws)
+                routeOptions.disconnect.call(ctx, { ctx, wss, ws, req, peers })
 
                 /*  stop tracking the peer  */
                 let idx = routePeers[routeId].indexOf(ws)
