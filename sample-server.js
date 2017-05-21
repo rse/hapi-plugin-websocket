@@ -26,7 +26,7 @@ server.route({
         plugins: { websocket: true }
     },
     handler: (request, reply) => {
-        if (request.websocket())
+        if (request.websocket().used)
             reply({ at: "bar", type: "websocket", seen: request.payload })
         else
             reply({ at: "bar", type: "rest", seen: request.payload })
