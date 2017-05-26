@@ -194,7 +194,7 @@ const register = (server, pluginOptions, next) => {
             /*  determine HTTP headers for simulated HTTP request:
                 take headers of initial HTTP upgrade request, but explicitly remove Accept-Encoding,
                 because it could lead HAPI to compress the payload (which we cannot post-process)  */
-            let headers = Object({}, req.headers)
+            let headers = Object.assign({}, req.headers)
             delete headers["accept-encoding"]
 
             /*  optionally inject an empty initial message  */
