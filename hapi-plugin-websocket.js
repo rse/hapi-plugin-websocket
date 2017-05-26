@@ -191,16 +191,22 @@ const register = (server, pluginOptions, next) => {
             /*  allow application to hook into WebSocket connection  */
             routeOptions.connect.call(ctx, { ctx, wss, ws, req, peers })
 
+            /*  determine HTTP headers for simulated HTTP request:
+                take headers of initial HTTP upgrade request, but explicitly remove Accept-Encoding,
+                because it could lead HAPI to compress the payload (which we cannot post-process)  */
+            let headers = Object({}, req.headers)
+            delete headers["accept-encoding"]
+
             /*  optionally inject an empty initial message  */
             if (routeOptions.initially) {
-                /*  transform incoming WebSocket message into a simulated HTTP request  */
+                /*  inject incoming WebSocket message as a simulated HTTP request  */
                 server.inject({
                     /*  simulate the hard-coded POST request  */
                     method:        "POST",
 
                     /*  pass-through initial HTTP request information  */
                     url:           req.url,
-                    headers:       req.headers,
+                    headers:       headers,
                     remoteAddress: req.socket.remoteAddress,
 
                     /*  provide an empty HTTP POST payload  */
@@ -228,14 +234,14 @@ const register = (server, pluginOptions, next) => {
             /*  hook into WebSocket message retrival  */
             let closed = false
             ws.on("message", (message) => {
-                /*  transform incoming WebSocket message into a simulated HTTP request  */
+                /*  inject incoming WebSocket message as a simulated HTTP request  */
                 server.inject({
                     /*  simulate the hard-coded POST request  */
                     method:        "POST",
 
                     /*  pass-through initial HTTP request information  */
                     url:           req.url,
-                    headers:       req.headers,
+                    headers:       headers,
                     remoteAddress: req.socket.remoteAddress,
 
                     /*  provide WebSocket message as HTTP POST payload  */
