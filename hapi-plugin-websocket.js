@@ -232,7 +232,6 @@ const register = (server, pluginOptions, next) => {
             }
 
             /*  hook into WebSocket message retrival  */
-            let closed = false
             ws.on("message", (message) => {
                 /*  inject incoming WebSocket message as a simulated HTTP request  */
                 server.inject({
@@ -253,15 +252,13 @@ const register = (server, pluginOptions, next) => {
                     }
                 }, (response) => {
                     /*  transform simulated HTTP response into an outgoing WebSocket message  */
-                    if (response.statusCode !== 204 && !closed)
+                    if (response.statusCode !== 204 && ws.readyState === WS.OPEN)
                         ws.send(response.payload)
                 })
             })
 
             /*  hook into WebSocket disconnection  */
             ws.on("close", () => {
-                closed = true
-
                 /*  allow application to hook into WebSocket disconnection  */
                 routeOptions.disconnect.call(ctx, { ctx, wss, ws, req, peers })
 
