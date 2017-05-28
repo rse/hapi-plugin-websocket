@@ -65,15 +65,15 @@ server.route({
                 only: true,
                 initially: true,
                 subprotocol: "quux/1.0",
-                connect: ({ ws }) => {
-                    this.to = setInterval(() => {
+                connect: ({ ctx, ws }) => {
+                    ctx.to = setInterval(() => {
                         ws.send(JSON.stringify({ cmd: "PING" }))
                     }, 5000)
                 },
-                disconnect: () => {
-                    if (this.to !== null) {
-                        clearTimeout(this.to)
-                        this.to = null
+                disconnect: ({ ctx }) => {
+                    if (ctx.to !== null) {
+                        clearTimeout(this.ctx)
+                        ctx.to = null
                     }
                 }
             }
