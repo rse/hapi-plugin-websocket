@@ -58,6 +58,8 @@ const register = (server, pluginOptions, next) => {
             subprotocol: null,
             connect:     function () {},
             disconnect:  function () {},
+            request:     function (ctx, request, reply) { return reply.continue() },
+            response:    function (ctx, request, reply) { return reply.continue() },
             autoping:    0,
             initially:   false
         }, routeOptions, true)
@@ -302,6 +304,24 @@ const register = (server, pluginOptions, next) => {
                   && request.plugins.websocket.mode === "websocket")) {
                 return reply(Boom.badRequest("Plain HTTP request to a WebSocket-only route not allowed"))
             }
+        }
+        return reply.continue()
+    }})
+
+    /*  handle request/response hooks  */
+    server.ext({ type: "onPostAuth", method: (request, reply) => {
+        if (hasWebSocketEnabled(request.route)) {
+            let routeOptions = fetchRouteOptions(request.route)
+            return routeOptions.request.call(request.plugins.websocket.ctx,
+                request.plugins.websocket, request, reply)
+        }
+        return reply.continue()
+    }})
+    server.ext({ type: "onPostHandler", method: (request, reply) => {
+        if (hasWebSocketEnabled(request.route)) {
+            let routeOptions = fetchRouteOptions(request.route)
+            return routeOptions.response.call(request.plugins.websocket.ctx,
+                request.plugins.websocket, request, reply)
         }
         return reply.continue()
     }})
