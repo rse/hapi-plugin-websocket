@@ -48,6 +48,16 @@ const register = (server, pluginOptions, next) => {
         )
     }
 
+    /*  check whether a HAPI request is WebSocket driven  */
+    const isRequestWebSocketDriven = (request) => {
+        return (
+               typeof request === "object"
+            && typeof request.plugins === "object"
+            && typeof request.plugins.websocket === "object"
+            && request.plugins.websocket.mode === "websocket"
+        )
+    }
+
     /*  determine the route-specific options of WebSocket-enabled route  */
     const fetchRouteOptions = (route) => {
         let routeOptions = route.settings.plugins.websocket
@@ -276,7 +286,7 @@ const register = (server, pluginOptions, next) => {
 
     /*  make available to HAPI request the remote WebSocket information  */
     server.ext({ type: "onRequest", method: (request, reply) => {
-        if (typeof request.plugins.websocket === "object") {
+        if (isRequestWebSocketDriven(request)) {
             request.info.remoteAddress = request.plugins.websocket.req.socket.remoteAddress
             request.info.remotePort    = request.plugins.websocket.req.socket.remotePort
         }
@@ -287,8 +297,7 @@ const register = (server, pluginOptions, next) => {
     server.decorate("request", "websocket", (request) => {
         return () => {
             return (
-                typeof request.plugins.websocket === "object" ?
-                request.plugins.websocket :
+                isRequestWebSocketDriven(request) ? request.plugins.websocket :
                 { mode: "http", ctx: null, wss: null, ws: null, req: null, peers: null }
             )
         }
@@ -297,20 +306,18 @@ const register = (server, pluginOptions, next) => {
     /*  handle WebSocket exclusive routes  */
     server.ext({ type: "onPreAuth", method: (request, reply) => {
         /*  if WebSocket is enabled with "only" flag on the selected route...  */
-        if (   typeof request.route.settings.plugins.websocket === "object"
-            && request.route.settings.plugins.websocket.only === true      ) {
+        if (   hasWebSocketEnabled(request.route)
+            && request.route.settings.plugins.websocket.only === true) {
             /*  ...but this is not a WebSocket originated request  */
-            if (!(   typeof request.plugins.websocket === "object"
-                  && request.plugins.websocket.mode === "websocket")) {
+            if (!isRequestWebSocketDriven(request))
                 return reply(Boom.badRequest("Plain HTTP request to a WebSocket-only route not allowed"))
-            }
         }
         return reply.continue()
     }})
 
     /*  handle request/response hooks  */
     server.ext({ type: "onPostAuth", method: (request, reply) => {
-        if (hasWebSocketEnabled(request.route)) {
+        if (hasWebSocketEnabled(request.route) && isRequestWebSocketDriven(request)) {
             let routeOptions = fetchRouteOptions(request.route)
             return routeOptions.request.call(request.plugins.websocket.ctx,
                 request.plugins.websocket, request, reply)
@@ -318,7 +325,7 @@ const register = (server, pluginOptions, next) => {
         return reply.continue()
     }})
     server.ext({ type: "onPostHandler", method: (request, reply) => {
-        if (hasWebSocketEnabled(request.route)) {
+        if (hasWebSocketEnabled(request.route) && isRequestWebSocketDriven(request)) {
             let routeOptions = fetchRouteOptions(request.route)
             return routeOptions.response.call(request.plugins.websocket.ctx,
                 request.plugins.websocket, request, reply)
