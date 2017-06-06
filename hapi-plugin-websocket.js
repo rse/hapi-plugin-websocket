@@ -39,7 +39,7 @@ const register = (server, pluginOptions, next) => {
     }, pluginOptions, true)
 
     /*  check whether a HAPI route has WebSocket enabled  */
-    const hasWebSocketEnabled = (route) => {
+    const isRouteWebSocketEnabled = (route) => {
         return (
                typeof route === "object"
             && typeof route.settings === "object"
@@ -95,7 +95,7 @@ const register = (server, pluginOptions, next) => {
             let matched = connection.match("POST", path, host)
             if (matched) {
                 /*  we accept only WebSocket-enabled ones  */
-                if (!hasWebSocketEnabled(matched))
+                if (!isRouteWebSocketEnabled(matched))
                     return
 
                 /*  optionally, we accept only the correct WebSocket subprotocol  */
@@ -119,7 +119,7 @@ const register = (server, pluginOptions, next) => {
         server.connections.forEach((connection) => {
             connection.table().forEach((route) => {
                 /*  for all WebSocket-enabled routes...  */
-                if (hasWebSocketEnabled(route)) {
+                if (isRouteWebSocketEnabled(route)) {
                     /*  make sure it is defined for POST method  */
                     if (route.method.toUpperCase() !== "POST")
                         throw new Error("WebSocket protocol can be enabled on POST routes only")
@@ -306,7 +306,7 @@ const register = (server, pluginOptions, next) => {
     /*  handle WebSocket exclusive routes  */
     server.ext({ type: "onPreAuth", method: (request, reply) => {
         /*  if WebSocket is enabled with "only" flag on the selected route...  */
-        if (   hasWebSocketEnabled(request.route)
+        if (   isRouteWebSocketEnabled(request.route)
             && request.route.settings.plugins.websocket.only === true) {
             /*  ...but this is not a WebSocket originated request  */
             if (!isRequestWebSocketDriven(request))
@@ -317,7 +317,7 @@ const register = (server, pluginOptions, next) => {
 
     /*  handle request/response hooks  */
     server.ext({ type: "onPostAuth", method: (request, reply) => {
-        if (hasWebSocketEnabled(request.route) && isRequestWebSocketDriven(request)) {
+        if (isRouteWebSocketEnabled(request.route) && isRequestWebSocketDriven(request)) {
             let routeOptions = fetchRouteOptions(request.route)
             return routeOptions.request.call(request.plugins.websocket.ctx,
                 request.plugins.websocket, request, reply)
@@ -325,7 +325,7 @@ const register = (server, pluginOptions, next) => {
         return reply.continue()
     }})
     server.ext({ type: "onPostHandler", method: (request, reply) => {
-        if (hasWebSocketEnabled(request.route) && isRequestWebSocketDriven(request)) {
+        if (isRouteWebSocketEnabled(request.route) && isRequestWebSocketDriven(request)) {
             let routeOptions = fetchRouteOptions(request.route)
             return routeOptions.response.call(request.plugins.websocket.ctx,
                 request.plugins.websocket, request, reply)
