@@ -27,7 +27,7 @@
         "hoek":             "~4.1.1",
         "boom":             "~5.1.0",
         "ws":               "~3.0.0",
-        "websocket-framed": "~0.9.9"
+        "websocket-framed": "~0.9.10"
     },
     "engines": {
         "node":             ">=6.0.0"
