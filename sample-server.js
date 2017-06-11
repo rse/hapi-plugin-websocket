@@ -101,5 +101,25 @@ server.route({
     }
 })
 
+/*  exclusive framed WebSocket route  */
+server.route({
+    method: "POST", path: "/framed",
+    config: {
+        plugins: {
+            websocket: {
+                only:          true,
+                autoping:      30 * 1000,
+                frame:         true,
+                frameEncoding: "json",
+                frameRequest:  "REQUEST",
+                frameResponse: "RESPONSE"
+            }
+        }
+    },
+    handler: (request, reply) => {
+        reply({ at: "framed", seen: request.payload })
+    }
+})
+
 server.start()
 

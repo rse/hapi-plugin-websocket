@@ -133,6 +133,26 @@ server.route({
     }
 })
 
+/*  exclusive framed WebSocket route  */
+server.route({
+    method: "POST", path: "/framed",
+    config: {
+        plugins: {
+            websocket: {
+                only:          true,
+                autoping:      30 * 1000,
+                frame:         true,
+                frameEncoding: "json",
+                frameRequest:  "REQUEST",
+                frameResponse: "RESPONSE"
+            }
+        }
+    },
+    handler: (request, reply) => {
+        reply({ at: "framed", seen: request.payload })
+    }
+})
+
 server.start()
 ```
 
@@ -182,6 +202,11 @@ $ wscat --subprotocol "quux/1.0" --auth foo:bar --connect ws://127.0.0.1:12345/q
 < {"cmd":"PING"}
 < {"cmd":"PING"}
 < {"cmd":"PING"}
+
+# access framed exclusive WebSocket route
+$ wscat --connect ws://127.0.0.1:12345/framed
+< [ 42, 0, "REQUEST", { "foo": 7 } ]
+> [1,42,"RESPONSE",{"at":"framed","seen":{"foo":7}}]
 ```
 
 Application Programming Interface
@@ -257,6 +282,32 @@ server.route({
         reply(...)
     }
 })
+```
+
+- **Register WebSocket-enabled Framed Route**:
+
+```js
+server.route({
+    method: "POST",
+    path:   "/foo",
+    config: {
+        plugins: {
+            websocket: {
+                only:          true,
+                frame:         true,
+                frameEncoding: "json",
+                frameRequest:  "REQUEST",
+                frameResponse: "RESPONSE"
+            }
+        }
+    },
+    handler: (request, reply) => {
+        let { mode, ctx, wss, ws, wsf, req, peers, initially } = request.websocket()
+        ...
+        reply(...)
+    }
+})
+
 ```
 
 Notice

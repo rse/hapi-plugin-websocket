@@ -27,6 +27,7 @@ const URI     = require("urijs")
 const hoek    = require("hoek")
 const Boom    = require("boom")
 const WS      = require("ws")
+const WSF     = require("websocket-framed")
 
 /*  internal dependencies  */
 const Package = require("./package.json")
@@ -64,14 +65,20 @@ const register = (server, pluginOptions, next) => {
         if (typeof routeOptions !== "object")
             routeOptions = {}
         routeOptions = hoek.applyToDefaults({
-            only:        false,
-            subprotocol: null,
-            connect:     function () {},
-            disconnect:  function () {},
-            request:     function (ctx, request, reply) { return reply.continue() },
-            response:    function (ctx, request, reply) { return reply.continue() },
-            autoping:    0,
-            initially:   false
+            only:          false,
+            subprotocol:   null,
+            error:         function () {},
+            connect:       function () {},
+            disconnect:    function () {},
+            request:       function (ctx, request, reply) { return reply.continue() },
+            response:      function (ctx, request, reply) { return reply.continue() },
+            frame:         false,
+            frameEncoding: "json",
+            frameRequest:  "REQUEST",
+            frameResponse: "RESPONSE",
+            frameMessage:  function () {},
+            autoping:      0,
+            initially:     false
         }, routeOptions, true)
         return routeOptions
     }
@@ -197,11 +204,16 @@ const register = (server, pluginOptions, next) => {
                 })
             }
 
+            /*  optionally create WebSocket-Framed context  */
+            let wsf = null
+            if (routeOptions.frame === true)
+                wsf = new WSF(ws, routeOptions.frameEncoding)
+
             /*  provide a local context  */
             let ctx = {}
 
             /*  allow application to hook into WebSocket connection  */
-            routeOptions.connect.call(ctx, { ctx, wss, ws, req, peers })
+            routeOptions.connect.call(ctx, { ctx, wss, ws, wsf, req, peers })
 
             /*  determine HTTP headers for simulated HTTP request:
                 take headers of initial HTTP upgrade request, but explicitly remove Accept-Encoding,
@@ -226,7 +238,7 @@ const register = (server, pluginOptions, next) => {
 
                     /*  provide WebSocket plugin context information  */
                     plugins: {
-                        websocket: { mode: "websocket", ctx, wss, ws, req, peers, initially: true }
+                        websocket: { mode: "websocket", ctx, wss, ws, wsf, req, peers, initially: true }
                     }
                 }, (response) => {
                     /*  any HTTP redirection, client error or server error response
@@ -244,40 +256,95 @@ const register = (server, pluginOptions, next) => {
             }
 
             /*  hook into WebSocket message retrival  */
-            ws.on("message", (message) => {
-                /*  inject incoming WebSocket message as a simulated HTTP request  */
-                server.inject({
-                    /*  simulate the hard-coded POST request  */
-                    method:        "POST",
+            if (routeOptions.frame === true) {
+                /*  framed WebSocket communication (correlated request/reply)  */
+                wsf.on("message", (ev) => {
+                    /*  allow application to hook into raw WebSocket frame processing  */
+                    routeOptions.frameMessage.call(ctx, { ctx, wss, ws, wsf, req, peers }, ev.frame)
 
-                    /*  pass-through initial HTTP request information  */
-                    url:           req.url,
-                    headers:       headers,
-                    remoteAddress: req.socket.remoteAddress,
+                    /*  process frame of expected type only  */
+                    if (ev.frame.type === routeOptions.frameRequest) {
+                        /*  re-encode data as JSON as HAPI want to decode it  */
+                        let message = JSON.stringify(ev.frame.data)
 
-                    /*  provide WebSocket message as HTTP POST payload  */
-                    payload:       message,
+                        /*  inject incoming WebSocket message as a simulated HTTP request  */
+                        server.inject({
+                            /*  simulate the hard-coded POST request  */
+                            method:        "POST",
 
-                    /*  provide WebSocket plugin context information  */
-                    plugins: {
-                        websocket: { mode: "websocket", ctx, wss, ws, req, peers }
+                            /*  pass-through initial HTTP request information  */
+                            url:           req.url,
+                            headers:       headers,
+                            remoteAddress: req.socket.remoteAddress,
+
+                            /*  provide WebSocket message as HTTP POST payload  */
+                            payload:       message,
+
+                            /*  provide WebSocket plugin context information  */
+                            plugins: {
+                                websocket: { mode: "websocket", ctx, wss, ws, wsf, req, peers }
+                            }
+                        }, (response) => {
+                            /*  transform simulated HTTP response into an outgoing WebSocket message  */
+                            if (response.statusCode !== 204 && ws.readyState === WS.OPEN) {
+                                /*  decode data from JSON as HAPI has already encoded it  */
+                                let type = routeOptions.frameResponse
+                                let data = JSON.parse(response.payload)
+
+                                /*  send as framed data  */
+                                wsf.send({ type, data }, ev.frame)
+                            }
+                        })
                     }
-                }, (response) => {
-                    /*  transform simulated HTTP response into an outgoing WebSocket message  */
-                    if (response.statusCode !== 204 && ws.readyState === WS.OPEN)
-                        ws.send(response.payload)
                 })
-            })
+            }
+            else {
+                /*  plain WebSocket communication (uncorrelated request/reponse)  */
+                ws.on("message", (message) => {
+                    /*  inject incoming WebSocket message as a simulated HTTP request  */
+                    server.inject({
+                        /*  simulate the hard-coded POST request  */
+                        method:        "POST",
+
+                        /*  pass-through initial HTTP request information  */
+                        url:           req.url,
+                        headers:       headers,
+                        remoteAddress: req.socket.remoteAddress,
+
+                        /*  provide WebSocket message as HTTP POST payload  */
+                        payload:       message,
+
+                        /*  provide WebSocket plugin context information  */
+                        plugins: {
+                            websocket: { mode: "websocket", ctx, wss, ws, wsf, req, peers }
+                        }
+                    }, (response) => {
+                        /*  transform simulated HTTP response into an outgoing WebSocket message  */
+                        if (response.statusCode !== 204 && ws.readyState === WS.OPEN)
+                            ws.send(response.payload)
+                    })
+                })
+            }
 
             /*  hook into WebSocket disconnection  */
             ws.on("close", () => {
                 /*  allow application to hook into WebSocket disconnection  */
-                routeOptions.disconnect.call(ctx, { ctx, wss, ws, req, peers })
+                routeOptions.disconnect.call(ctx, { ctx, wss, ws, wsf, req, peers })
 
                 /*  stop tracking the peer  */
                 let idx = routePeers[routeId].indexOf(ws)
                 routePeers[routeId].splice(idx, 1)
             })
+
+            /*  allow application to hook into WebSocket error processing  */
+            ws.on("error", (error) => {
+                routeOptions.error.call(ctx, { ctx, wss, ws, wsf, req, peers }, error)
+            })
+            if (routeOptions.frame === true) {
+                wsf.on("error", (error) => {
+                    routeOptions.error.call(ctx, { ctx, wss, ws, wsf, req, peers }, error)
+                })
+            }
         })
 
         /*  continue processing  */
@@ -298,7 +365,7 @@ const register = (server, pluginOptions, next) => {
         return () => {
             return (
                 isRequestWebSocketDriven(request) ? request.plugins.websocket :
-                { mode: "http", ctx: null, wss: null, ws: null, req: null, peers: null }
+                { mode: "http", ctx: null, wss: null, ws: null, wsf: null, req: null, peers: null }
             )
         }
     }, { apply: true })
