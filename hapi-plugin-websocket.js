@@ -173,7 +173,7 @@ const register = (server, pluginOptions, next) => {
             if (route.vhost)
                 routeId += `:${route.vhost}`
             if (routeOptions.subprotocol !== null)
-                routeId += `:{routeOptions.subprotocol}`
+                routeId += `:${routeOptions.subprotocol}`
 
             /*  track the peer per-route  */
             if (routePeers[routeId] === undefined)
