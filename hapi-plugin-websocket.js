@@ -42,7 +42,7 @@ const register = (server, pluginOptions, next) => {
     /*  check whether a HAPI route has WebSocket enabled  */
     const isRouteWebSocketEnabled = (route) => {
         return (
-               typeof route === "object"
+            typeof route === "object"
             && typeof route.settings === "object"
             && typeof route.settings.plugins === "object"
             && typeof route.settings.plugins.websocket !== "undefined"
@@ -52,7 +52,7 @@ const register = (server, pluginOptions, next) => {
     /*  check whether a HAPI request is WebSocket driven  */
     const isRequestWebSocketDriven = (request) => {
         return (
-               typeof request === "object"
+            typeof request === "object"
             && typeof request.plugins === "object"
             && typeof request.plugins.websocket === "object"
             && request.plugins.websocket.mode === "websocket"
@@ -121,7 +121,6 @@ const register = (server, pluginOptions, next) => {
 
     /*  perform WebSocket handling on HAPI start  */
     server.ext({ type: "onPostStart", method: (server, next) => {
-
         /*  sanity check all HAPI route definitions  */
         server.connections.forEach((connection) => {
             connection.table().forEach((route) => {
@@ -363,10 +362,9 @@ const register = (server, pluginOptions, next) => {
     /*  allow WebSocket information to be easily retrieved  */
     server.decorate("request", "websocket", (request) => {
         return () => {
-            return (
-                isRequestWebSocketDriven(request) ? request.plugins.websocket :
-                { mode: "http", ctx: null, wss: null, ws: null, wsf: null, req: null, peers: null }
-            )
+            return (isRequestWebSocketDriven(request) ?
+                request.plugins.websocket
+                : { mode: "http", ctx: null, wss: null, ws: null, wsf: null, req: null, peers: null })
         }
     }, { apply: true })
 

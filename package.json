@@ -17,22 +17,27 @@
     "homepage": "https://github.com/rse/hapi-plugin-websocket",
     "bugs":     "https://github.com/rse/hapi-plugin-websocket/issues",
     "devDependencies": {
-        "hapi":             "~16.4.3",
-        "hapi-auth-basic":  "~4.2.0",
-        "babel-eslint":     "~7.2.3",
-        "eslint":           "~3.19.0"
+        "hapi":                    "~16.4.3",
+        "hapi-auth-basic":         "~4.2.0",
+        "babel-eslint":            "~7.2.3",
+        "eslint":                  "~4.0.0",
+        "eslint-config-standard":  "~10.2.1",
+        "eslint-plugin-standard":  "~3.0.1",
+        "eslint-plugin-promise":   "~3.5.0",
+        "eslint-plugin-import":    "~2.3.0",
+        "eslint-plugin-node":      "~5.0.0"
     },
     "dependencies": {
-        "urijs":            "~1.18.10",
-        "hoek":             "~4.1.1",
-        "boom":             "~5.1.0",
-        "ws":               "~3.0.0",
-        "websocket-framed": "~1.0.0"
+        "urijs":                   "~1.18.10",
+        "hoek":                    "~4.1.1",
+        "boom":                    "~5.1.0",
+        "ws":                      "~3.0.0",
+        "websocket-framed":        "~1.0.0"
     },
     "engines": {
-        "node":             ">=6.0.0"
+        "node":                    ">=6.0.0"
     },
     "scripts": {
-        "prepublish":       "eslint --config eslint.json hapi-plugin-websocket.js sample-server.js"
+        "prepublish":              "eslint --config eslint.yaml hapi-plugin-websocket.js sample-server.js"
     }
 }
