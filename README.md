@@ -21,9 +21,10 @@ About
 -----
 
 This is a small plugin for the [HAPI](http://hapijs.com/) server
-framework for seamless WebSocket protocol integration. It accepts
-WebSocket connections and transforms between incoming/outgoing WebSocket
-messages and injected HTTP request/response messages.
+framework of [Node.js](https://nodejs.org/) for seamless
+[WebSocket](https://tools.ietf.org/html/rfc6455) protocol integration.
+It accepts WebSocket connections and transforms between incoming/outgoing
+WebSocket messages and injected HTTP request/response messages.
 
 Usage
 -----
