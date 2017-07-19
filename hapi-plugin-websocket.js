@@ -119,6 +119,9 @@ const register = (server, pluginOptions, next) => {
         return route
     }
 
+    /*  the global WebSocket server instance  */
+    let wss = null
+
     /*  perform WebSocket handling on HAPI start  */
     server.ext({ type: "onPostStart", method: (server, next) => {
         /*  sanity check all HAPI route definitions  */
@@ -135,7 +138,7 @@ const register = (server, pluginOptions, next) => {
 
         /*  establish a WebSocket server and attach it to the
             Node HTTP server underlying the HAPI server  */
-        let wss = new WS.Server({
+        wss = new WS.Server({
             /*  the underyling HTTP server  */
             server: server.listener,
 
@@ -348,6 +351,19 @@ const register = (server, pluginOptions, next) => {
 
         /*  continue processing  */
         next()
+    }})
+
+    /*  perform WebSocket handling on HAPI stop  */
+    server.ext({ type: "onPreStop", method: (server, next) => {
+        /*  close WebSocket server instance  */
+        if (wss !== null) {
+            wss.close(() => {
+                wss = null
+                next()
+            })
+        }
+        else
+            next()
     }})
 
     /*  make available to HAPI request the remote WebSocket information  */
