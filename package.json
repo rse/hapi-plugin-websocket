@@ -25,12 +25,12 @@
         "eslint-plugin-standard":  "~3.0.1",
         "eslint-plugin-promise":   "~3.5.0",
         "eslint-plugin-import":    "~2.7.0",
-        "eslint-plugin-node":      "~5.1.0"
+        "eslint-plugin-node":      "~5.1.1"
     },
     "dependencies": {
         "urijs":                   "~1.18.10",
-        "hoek":                    "~4.1.1",
-        "boom":                    "~5.1.0",
+        "hoek":                    "~4.2.0",
+        "boom":                    "~5.2.0",
         "ws":                      "~3.0.0",
         "websocket-framed":        "~1.0.3"
     },
