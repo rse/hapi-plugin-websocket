@@ -17,10 +17,10 @@
     "homepage": "https://github.com/rse/hapi-plugin-websocket",
     "bugs":     "https://github.com/rse/hapi-plugin-websocket/issues",
     "devDependencies": {
-        "hapi":                    "~16.4.3",
+        "hapi":                    "~16.5.0",
         "hapi-auth-basic":         "~4.2.0",
         "babel-eslint":            "~7.2.3",
-        "eslint":                  "~4.2.0",
+        "eslint":                  "~4.3.0",
         "eslint-config-standard":  "~10.2.1",
         "eslint-plugin-standard":  "~3.0.1",
         "eslint-plugin-promise":   "~3.5.0",
