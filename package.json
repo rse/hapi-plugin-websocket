@@ -1,6 +1,6 @@
 {
     "name":        "hapi-plugin-websocket",
-    "version":     "1.2.16",
+    "version":     "1.2.17",
     "description": "HAPI plugin for seamless WebSocket integration",
     "keywords":    [ "hapi", "plugin", "websocket" ],
     "main":        "./hapi-plugin-websocket.js",
