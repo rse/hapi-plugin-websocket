@@ -17,7 +17,7 @@
     "homepage": "https://github.com/rse/hapi-plugin-websocket",
     "bugs":     "https://github.com/rse/hapi-plugin-websocket/issues",
     "devDependencies": {
-        "hapi":                    "~16.5.0",
+        "hapi":                    "~16.5.2",
         "hapi-auth-basic":         "~4.2.0",
         "babel-eslint":            "~7.2.3",
         "eslint":                  "~4.3.0",
@@ -31,7 +31,7 @@
         "urijs":                   "~1.18.10",
         "hoek":                    "~4.2.0",
         "boom":                    "~5.2.0",
-        "ws":                      "~3.0.0",
+        "ws":                      "~3.1.0",
         "websocket-framed":        "~1.0.8"
     },
     "engines": {
