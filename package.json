@@ -1,43 +1,48 @@
 {
-    "name":        "hapi-plugin-websocket",
-    "version":     "1.2.18",
+    "name": "hapi-plugin-websocket",
+    "version": "2.0.0",
     "description": "HAPI plugin for seamless WebSocket integration",
-    "keywords":    [ "hapi", "plugin", "websocket" ],
-    "main":        "./hapi-plugin-websocket.js",
-    "license":     "MIT",
+    "keywords": [
+        "hapi",
+        "plugin",
+        "websocket"
+    ],
+    "main": "./hapi-plugin-websocket.js",
+    "license": "MIT",
     "repository": {
         "type": "git",
-        "url":  "https://github.com/rse/hapi-plugin-websocket.git"
+        "url": "https://github.com/rse/hapi-plugin-websocket.git"
     },
     "author": {
-        "name":  "Ralf S. Engelschall",
+        "name": "Ralf S. Engelschall",
         "email": "rse@engelschall.com",
-        "url":   "http://engelschall.com"
+        "url": "http://engelschall.com"
     },
     "homepage": "https://github.com/rse/hapi-plugin-websocket",
-    "bugs":     "https://github.com/rse/hapi-plugin-websocket/issues",
+    "bugs": "https://github.com/rse/hapi-plugin-websocket/issues",
     "devDependencies": {
-        "hapi":                    "~16.6.2",
-        "hapi-auth-basic":         "~4.2.0",
-        "babel-eslint":            "~8.0.3",
-        "eslint":                  "~4.12.1",
-        "eslint-config-standard":  "~10.2.1",
-        "eslint-plugin-standard":  "~3.0.1",
-        "eslint-plugin-promise":   "~3.6.0",
-        "eslint-plugin-import":    "~2.8.0",
-        "eslint-plugin-node":      "~5.2.1"
+        "babel-eslint": "~8.0.3",
+        "eslint": "~4.12.1",
+        "eslint-config-standard": "~10.2.1",
+        "eslint-plugin-import": "~2.8.0",
+        "eslint-plugin-node": "~5.2.1",
+        "eslint-plugin-promise": "~3.6.0",
+        "eslint-plugin-standard": "~3.0.1",
+        "hapi": "~17.2.0",
+        "hapi-auth-basic": "~5.0.0",
+        "wscat": "^2.1.1"
     },
     "dependencies": {
-        "urijs":                   "~1.19.0",
-        "hoek":                    "~5.0.2",
-        "boom":                    "~7.1.1",
-        "ws":                      "~3.3.2",
-        "websocket-framed":        "~1.0.11"
+        "urijs": "~1.19.0",
+        "hoek": "~5.0.2",
+        "boom": "~7.1.1",
+        "ws": "~3.3.2",
+        "websocket-framed": "~1.0.11"
     },
     "engines": {
-        "node":                    ">=6.0.0"
+        "node": ">=6.0.0"
     },
     "scripts": {
-        "prepublishOnly":          "eslint --config eslint.yaml hapi-plugin-websocket.js sample-server.js"
+        "prepublishOnly": "eslint --config eslint.yaml hapi-plugin-websocket.js sample-server.js"
     }
 }
