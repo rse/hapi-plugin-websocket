@@ -141,28 +141,3 @@ async function runServer() {
     }
 }
 runServer();
-        config: {
-            plugins: {
-                websocket: {
-                    only:          true,
-                    autoping:      30 * 1000,
-                    frame:         true,
-                    frameEncoding: "json",
-                    frameRequest:  "REQUEST",
-                    frameResponse: "RESPONSE"
-                }
-            }
-        },
-        handler: (request, h) => {
-            return { at: "framed", seen: request.payload };
-        }
-    })
-
-    try {
-        await server.start();
-    }
-    catch (e){
-        console.log(e);
-    }
-}
-runServer();
