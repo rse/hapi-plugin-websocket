@@ -345,9 +345,15 @@ const register = async (server, pluginOptions) => {
         /*  close WebSocket server instance  */
         return new Promise((resolve /*, reject */) => {
             if (wss !== null) {
+                /*  trigger the WebSocket server to close everything  */
                 wss.close(() => {
-                    wss = null
-                    resolve()
+                    /*  give WebSocket server's callback a chance to execute
+                        (this indirectly calls our "close" subscription above)  */
+                    setTimeout(() => {
+                        /*  continue processing inside HAPI  */
+                        wss = null
+                        resolve()
+                    }, 0)
                 })
             }
             else
