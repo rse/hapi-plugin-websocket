@@ -39,7 +39,6 @@ const HAPIAuthBasic = require("hapi-auth-basic")
 const WebSocket     = require("ws")
 
 ;(async () => {
-
     /*  create new HAPI service  */
     const server = new HAPI.Server({ address: "127.0.0.1", port: 12345 })
 
@@ -168,7 +167,6 @@ const WebSocket     = require("ws")
 
     /*  start the HAPI service  */
     await server.start()
-
 })().catch((err) => {
     console.log(`ERROR: ${err}`)
 })
