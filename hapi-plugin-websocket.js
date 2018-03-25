@@ -30,10 +30,10 @@ const WS      = require("ws")
 const WSF     = require("websocket-framed")
 
 /*  internal dependencies  */
-const Package = require("./package.json")
+const pkg     = require("./package.json")
 
 /*  the HAPI plugin registration function  */
-const register = (server, pluginOptions, next) => {
+const register = async (server, pluginOptions) => {
     /*  determine plugin registration options  */
     pluginOptions = hoek.applyToDefaults({
         create: function () {}
@@ -70,8 +70,8 @@ const register = (server, pluginOptions, next) => {
             error:         function () {},
             connect:       function () {},
             disconnect:    function () {},
-            request:       function (ctx, request, reply) { return reply.continue() },
-            response:      function (ctx, request, reply) { return reply.continue() },
+            request:       function (ctx, request, h) { return h.continue },
+            response:      function (ctx, request, h) { return h.continue },
             frame:         false,
             frameEncoding: "json",
             frameRequest:  "REQUEST",
@@ -93,28 +93,20 @@ const register = (server, pluginOptions, next) => {
         let path   = url.path
         let protos = (req.headers["sec-websocket-protocol"] || "").split(/, */)
 
-        /*  iterate over all HAPI connections...  */
-        server.connections.forEach((connection) => {
-            if (route !== null)
-                return
-
-            /*  ...and find a matching route on each connection  */
-            let matched = connection.match("POST", path, host)
-            if (matched) {
-                /*  we accept only WebSocket-enabled ones  */
-                if (!isRouteWebSocketEnabled(matched))
-                    return
-
+        /*  find a matching route  */
+        let matched = server.match("POST", path, host)
+        if (matched) {
+            /*  we accept only WebSocket-enabled ones  */
+            if (isRouteWebSocketEnabled(matched)) {
                 /*  optionally, we accept only the correct WebSocket subprotocol  */
                 let routeOptions = fetchRouteOptions(matched)
-                if (   routeOptions.subprotocol !== null
-                    && protos.indexOf(routeOptions.subprotocol) === -1)
-                    return
-
-                /*  take this route  */
-                route = matched
+                if (!(   routeOptions.subprotocol !== null
+                      && protos.indexOf(routeOptions.subprotocol) === -1)) {
+                    /*  take this route  */
+                    route = matched
+                }
             }
-        })
+        }
 
         return route
     }
@@ -123,17 +115,15 @@ const register = (server, pluginOptions, next) => {
     let wss = null
 
     /*  perform WebSocket handling on HAPI start  */
-    server.ext({ type: "onPostStart", method: (server, next) => {
+    server.ext({ type: "onPostStart", method: (server) => {
         /*  sanity check all HAPI route definitions  */
-        server.connections.forEach((connection) => {
-            connection.table().forEach((route) => {
-                /*  for all WebSocket-enabled routes...  */
-                if (isRouteWebSocketEnabled(route)) {
-                    /*  make sure it is defined for POST method  */
-                    if (route.method.toUpperCase() !== "POST")
-                        throw new Error("WebSocket protocol can be enabled on POST routes only")
-                }
-            })
+        server.table().forEach((route) => {
+            /*  for all WebSocket-enabled routes...  */
+            if (isRouteWebSocketEnabled(route)) {
+                /*  make sure it is defined for POST method  */
+                if (route.method.toUpperCase() !== "POST")
+                    throw new Error("WebSocket protocol can be enabled on POST routes only")
+            }
         })
 
         /*  establish a WebSocket server and attach it to the
@@ -163,7 +153,7 @@ const register = (server, pluginOptions, next) => {
         let routeTimers = {}
 
         /*  on WebSocket connection (actually HTTP upgrade events)...  */
-        wss.on("connection", (ws, req) => {
+        wss.on("connection", async (ws, req) => {
             /*  find the (previously already successfully matched) HAPI route  */
             let route = findRoute(req)
 
@@ -226,7 +216,7 @@ const register = (server, pluginOptions, next) => {
             /*  optionally inject an empty initial message  */
             if (routeOptions.initially) {
                 /*  inject incoming WebSocket message as a simulated HTTP request  */
-                server.inject({
+                let response = await server.inject({
                     /*  simulate the hard-coded POST request  */
                     method:        "POST",
 
@@ -242,25 +232,25 @@ const register = (server, pluginOptions, next) => {
                     plugins: {
                         websocket: { mode: "websocket", ctx, wss, ws, wsf, req, peers, initially: true }
                     }
-                }, (response) => {
-                    /*  any HTTP redirection, client error or server error response
-                        leads to an immediate WebSocket connection drop  */
-                    if (response.statusCode >= 300) {
-                        let annotation = `(HAPI handler reponded with HTTP status ${response.statusCode})`
-                        if (response.statusCode < 400)
-                            ws.close(1002, `Protocol Error ${annotation}`)
-                        else if (response.statusCode < 500)
-                            ws.close(1008, `Policy Violation ${annotation}`)
-                        else
-                            ws.close(1011, `Server Error ${annotation}`)
-                    }
                 })
+
+                /*  any HTTP redirection, client error or server error response
+                    leads to an immediate WebSocket connection drop  */
+                if (response.statusCode >= 300) {
+                    let annotation = `(HAPI handler reponded with HTTP status ${response.statusCode})`
+                    if (response.statusCode < 400)
+                        ws.close(1002, `Protocol Error ${annotation}`)
+                    else if (response.statusCode < 500)
+                        ws.close(1008, `Policy Violation ${annotation}`)
+                    else
+                        ws.close(1011, `Server Error ${annotation}`)
+                }
             }
 
-            /*  hook into WebSocket message retrival  */
+            /*  hook into WebSocket message retrieval  */
             if (routeOptions.frame === true) {
                 /*  framed WebSocket communication (correlated request/reply)  */
-                wsf.on("message", (ev) => {
+                wsf.on("message", async (ev) => {
                     /*  allow application to hook into raw WebSocket frame processing  */
                     routeOptions.frameMessage.call(ctx, { ctx, wss, ws, wsf, req, peers }, ev.frame)
 
@@ -270,7 +260,7 @@ const register = (server, pluginOptions, next) => {
                         let message = JSON.stringify(ev.frame.data)
 
                         /*  inject incoming WebSocket message as a simulated HTTP request  */
-                        server.inject({
+                        let response = await server.inject({
                             /*  simulate the hard-coded POST request  */
                             method:        "POST",
 
@@ -286,25 +276,25 @@ const register = (server, pluginOptions, next) => {
                             plugins: {
                                 websocket: { mode: "websocket", ctx, wss, ws, wsf, req, peers }
                             }
-                        }, (response) => {
-                            /*  transform simulated HTTP response into an outgoing WebSocket message  */
-                            if (response.statusCode !== 204 && ws.readyState === WS.OPEN) {
-                                /*  decode data from JSON as HAPI has already encoded it  */
-                                let type = routeOptions.frameResponse
-                                let data = JSON.parse(response.payload)
-
-                                /*  send as framed data  */
-                                wsf.send({ type, data }, ev.frame)
-                            }
                         })
+
+                        /*  transform simulated HTTP response into an outgoing WebSocket message  */
+                        if (response.statusCode !== 204 && ws.readyState === WS.OPEN) {
+                            /*  decode data from JSON as HAPI has already encoded it  */
+                            let type = routeOptions.frameResponse
+                            let data = JSON.parse(response.payload)
+
+                            /*  send as framed data  */
+                            wsf.send({ type, data }, ev.frame)
+                        }
                     }
                 })
             }
             else {
                 /*  plain WebSocket communication (uncorrelated request/reponse)  */
-                ws.on("message", (message) => {
+                ws.on("message", async (message) => {
                     /*  inject incoming WebSocket message as a simulated HTTP request  */
-                    server.inject({
+                    let response = await server.inject({
                         /*  simulate the hard-coded POST request  */
                         method:        "POST",
 
@@ -320,11 +310,11 @@ const register = (server, pluginOptions, next) => {
                         plugins: {
                             websocket: { mode: "websocket", ctx, wss, ws, wsf, req, peers }
                         }
-                    }, (response) => {
-                        /*  transform simulated HTTP response into an outgoing WebSocket message  */
-                        if (response.statusCode !== 204 && ws.readyState === WS.OPEN)
-                            ws.send(response.payload)
                     })
+
+                    /*  transform simulated HTTP response into an outgoing WebSocket message  */
+                    if (response.statusCode !== 204 && ws.readyState === WS.OPEN)
+                        ws.send(response.payload)
                 })
             }
 
@@ -348,31 +338,30 @@ const register = (server, pluginOptions, next) => {
                 })
             }
         })
-
-        /*  continue processing  */
-        next()
     }})
 
     /*  perform WebSocket handling on HAPI stop  */
-    server.ext({ type: "onPreStop", method: (server, next) => {
+    server.ext({ type: "onPreStop", method: (server, h) => {
         /*  close WebSocket server instance  */
-        if (wss !== null) {
-            wss.close(() => {
-                wss = null
-                next()
-            })
-        }
-        else
-            next()
+        return new Promise((resolve /*, reject */) => {
+            if (wss !== null) {
+                wss.close(() => {
+                    wss = null
+                    resolve()
+                })
+            }
+            else
+                resolve()
+        })
     }})
 
     /*  make available to HAPI request the remote WebSocket information  */
-    server.ext({ type: "onRequest", method: (request, reply) => {
+    server.ext({ type: "onRequest", method: (request, h) => {
         if (isRequestWebSocketDriven(request)) {
             request.info.remoteAddress = request.plugins.websocket.req.socket.remoteAddress
             request.info.remotePort    = request.plugins.websocket.req.socket.remotePort
         }
-        return reply.continue()
+        return h.continue
     }})
 
     /*  allow WebSocket information to be easily retrieved  */
@@ -385,42 +374,42 @@ const register = (server, pluginOptions, next) => {
     }, { apply: true })
 
     /*  handle WebSocket exclusive routes  */
-    server.ext({ type: "onPreAuth", method: (request, reply) => {
+    server.ext({ type: "onPreAuth", method: (request, h) => {
         /*  if WebSocket is enabled with "only" flag on the selected route...  */
         if (   isRouteWebSocketEnabled(request.route)
             && request.route.settings.plugins.websocket.only === true) {
             /*  ...but this is not a WebSocket originated request  */
             if (!isRequestWebSocketDriven(request))
-                return reply(Boom.badRequest("Plain HTTP request to a WebSocket-only route not allowed"))
+                return Boom.badRequest("Plain HTTP request to a WebSocket-only route not allowed")
         }
-        return reply.continue()
+        return h.continue
     }})
 
     /*  handle request/response hooks  */
-    server.ext({ type: "onPostAuth", method: (request, reply) => {
+    server.ext({ type: "onPostAuth", method: (request, h) => {
         if (isRouteWebSocketEnabled(request.route) && isRequestWebSocketDriven(request)) {
             let routeOptions = fetchRouteOptions(request.route)
             return routeOptions.request.call(request.plugins.websocket.ctx,
-                request.plugins.websocket, request, reply)
+                request.plugins.websocket, request, h)
         }
-        return reply.continue()
+        return h.continue
     }})
-    server.ext({ type: "onPostHandler", method: (request, reply) => {
+    server.ext({ type: "onPostHandler", method: (request, h) => {
         if (isRouteWebSocketEnabled(request.route) && isRequestWebSocketDriven(request)) {
             let routeOptions = fetchRouteOptions(request.route)
             return routeOptions.response.call(request.plugins.websocket.ctx,
-                request.plugins.websocket, request, reply)
+                request.plugins.websocket, request, h)
         }
-        return reply.continue()
+        return h.continue
     }})
-
-    /*  continue plugin processing  */
-    next()
 }
 
-/*  provide meta-information as expected by HAPI  */
-register.attributes = { pkg: Package }
-
 /*  export register function, wrapped in a plugin object  */
-module.exports = { register: register }
+module.exports = {
+    plugin: {
+        register: register,
+        pkg:      pkg,
+        once:     true
+    }
+}
 
