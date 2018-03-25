@@ -238,14 +238,14 @@ const HAPIWebSocket = require("hapi-plugin-websocket")
 - **Register Module in HAPI** (simple variant):
 
 ```js
-server.register(HAPIWebSocket)
+await server.register(HAPIWebSocket)
 ```
 
 - **Register Module in HAPI** (complex variant):
 
 ```js
 server.register({
-    register: HAPIWebSocket,
+    plugin: HAPIWebSocket,
     options: {
         create: (wss) => {
             ...
@@ -260,11 +260,11 @@ server.register({
 server.route({
     method: "POST",
     path: "/foo",
-    config: {
+    options: {
         plugins: { websocket: true }
     },
-    handler: (request, reply) => {
-        reply(...)
+    handler: async (request, h) => {
+        ...
     }
 })
 ```
@@ -275,7 +275,7 @@ server.route({
 server.route({
     method: "POST",
     path: "/foo",
-    config: {
+    options: {
         plugins: {
             websocket: {
                 only: true,
@@ -293,10 +293,9 @@ server.route({
             }
         }
     },
-    handler: (request, reply) => {
+    handler: async (request, h) => {
         let { mode, ctx, wss, ws, req, peers, initially } = request.websocket()
         ...
-        reply(...)
     }
 })
 ```
@@ -307,7 +306,7 @@ server.route({
 server.route({
     method: "POST",
     path:   "/foo",
-    config: {
+    options: {
         plugins: {
             websocket: {
                 only:          true,
@@ -318,10 +317,9 @@ server.route({
             }
         }
     },
-    handler: (request, reply) => {
+    handler: async (request, h) => {
         let { mode, ctx, wss, ws, wsf, req, peers, initially } = request.websocket()
         ...
-        reply(...)
     }
 })
 
