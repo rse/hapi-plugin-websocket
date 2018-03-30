@@ -24,7 +24,7 @@
         "hoek":                    "5.0.3",
         "boom":                    "7.2.0",
         "ws":                      "5.1.0",
-        "websocket-framed":        "1.0.14"
+        "websocket-framed":        "1.0.15"
     },
     "devDependencies": {
         "hapi":                    "17.2.3",
