@@ -23,11 +23,11 @@
         "urijs":                   "1.19.1",
         "hoek":                    "5.0.3",
         "boom":                    "7.2.0",
-        "ws":                      "5.1.0",
+        "ws":                      "5.1.1",
         "websocket-framed":        "1.0.15"
     },
     "devDependencies": {
-        "hapi":                    "17.2.3",
+        "hapi":                    "17.3.1",
         "hapi-auth-basic":         "5.0.0",
         "babel-eslint":            "8.2.2",
         "eslint":                  "4.19.1",
