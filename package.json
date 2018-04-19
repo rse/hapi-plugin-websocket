@@ -24,17 +24,17 @@
         "hoek":                    "5.0.3",
         "boom":                    "7.2.0",
         "ws":                      "5.1.1",
-        "websocket-framed":        "1.0.16"
+        "websocket-framed":        "1.0.17"
     },
     "devDependencies": {
         "hapi":                    "17.3.1",
         "hapi-auth-basic":         "5.0.0",
-        "babel-eslint":            "8.2.2",
+        "babel-eslint":            "8.2.3",
         "eslint":                  "4.19.1",
         "eslint-config-standard":  "11.0.0",
         "eslint-plugin-standard":  "3.0.1",
         "eslint-plugin-promise":   "3.7.0",
-        "eslint-plugin-import":    "2.10.0",
+        "eslint-plugin-import":    "2.11.0",
         "eslint-plugin-node":      "6.0.1"
     },
     "engines": {
