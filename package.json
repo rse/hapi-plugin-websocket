@@ -23,19 +23,19 @@
         "urijs":                   "1.19.1",
         "hoek":                    "5.0.3",
         "boom":                    "7.2.0",
-        "ws":                      "5.2.1",
-        "websocket-framed":        "1.0.22"
+        "ws":                      "6.0.0",
+        "websocket-framed":        "1.0.24"
     },
     "devDependencies": {
         "hapi":                    "17.5.2",
         "hapi-auth-basic":         "5.0.0",
-        "babel-eslint":            "8.2.5",
-        "eslint":                  "5.0.0",
+        "babel-eslint":            "8.2.6",
+        "eslint":                  "5.2.0",
         "eslint-config-standard":  "11.0.0",
         "eslint-plugin-standard":  "3.1.0",
         "eslint-plugin-promise":   "3.8.0",
-        "eslint-plugin-import":    "2.12.0",
-        "eslint-plugin-node":      "6.0.1"
+        "eslint-plugin-import":    "2.13.0",
+        "eslint-plugin-node":      "7.0.1"
     },
     "engines": {
         "node":                    ">=8.0.0"
