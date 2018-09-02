@@ -338,7 +338,7 @@ const register = async (server, pluginOptions) => {
                 })
             }
         })
-    }})
+    } })
 
     /*  perform WebSocket handling on HAPI stop  */
     server.ext({ type: "onPreStop", method: (server, h) => {
@@ -359,7 +359,7 @@ const register = async (server, pluginOptions) => {
             else
                 resolve()
         })
-    }})
+    } })
 
     /*  make available to HAPI request the remote WebSocket information  */
     server.ext({ type: "onRequest", method: (request, h) => {
@@ -368,7 +368,7 @@ const register = async (server, pluginOptions) => {
             request.info.remotePort    = request.plugins.websocket.req.socket.remotePort
         }
         return h.continue
-    }})
+    } })
 
     /*  allow WebSocket information to be easily retrieved  */
     server.decorate("request", "websocket", (request) => {
@@ -389,7 +389,7 @@ const register = async (server, pluginOptions) => {
                 return Boom.badRequest("Plain HTTP request to a WebSocket-only route not allowed")
         }
         return h.continue
-    }})
+    } })
 
     /*  handle request/response hooks  */
     server.ext({ type: "onPostAuth", method: (request, h) => {
@@ -399,7 +399,7 @@ const register = async (server, pluginOptions) => {
                 request.plugins.websocket, request, h)
         }
         return h.continue
-    }})
+    } })
     server.ext({ type: "onPostHandler", method: (request, h) => {
         if (isRouteWebSocketEnabled(request.route) && isRequestWebSocketDriven(request)) {
             let routeOptions = fetchRouteOptions(request.route)
@@ -407,7 +407,7 @@ const register = async (server, pluginOptions) => {
                 request.plugins.websocket, request, h)
         }
         return h.continue
-    }})
+    } })
 }
 
 /*  export register function, wrapped in a plugin object  */
