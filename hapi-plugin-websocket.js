@@ -183,7 +183,7 @@ const register = async (server, pluginOptions) => {
                                 ws.terminate()
                             else {
                                 ws.isAlive = false
-                                ws.ping("", false, true)
+                                ws.ping("", false)
                             }
                         })
                     }, routeOptions.autoping)
