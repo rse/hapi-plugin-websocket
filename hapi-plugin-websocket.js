@@ -24,8 +24,8 @@
 
 /*  external dependencies  */
 const URI     = require("urijs")
-const hoek    = require("hoek")
-const Boom    = require("boom")
+const hoek    = require("@hapi/hoek")
+const Boom    = require("@hapi/boom")
 const WS      = require("ws")
 const WSF     = require("websocket-framed")
 
@@ -37,7 +37,7 @@ const register = async (server, pluginOptions) => {
     /*  determine plugin registration options  */
     pluginOptions = hoek.applyToDefaults({
         create: function () {}
-    }, pluginOptions, true)
+    }, pluginOptions, { nullOverride: true })
 
     /*  check whether a HAPI route has WebSocket enabled  */
     const isRouteWebSocketEnabled = (route) => {

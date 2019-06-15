@@ -1,8 +1,8 @@
 
-const Boom          = require("boom")
-const HAPI          = require("hapi")
+const Boom          = require("@hapi/boom")
+const HAPI          = require("@hapi/hapi")
+const HAPIAuthBasic = require("@hapi/basic")
 const HAPIWebSocket = require("./hapi-plugin-websocket")
-const HAPIAuthBasic = require("hapi-auth-basic")
 const WebSocket     = require("ws")
 
 ;(async () => {
