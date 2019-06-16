@@ -79,7 +79,7 @@ const register = async (server, pluginOptions) => {
             frameMessage:  function () {},
             autoping:      0,
             initially:     false
-        }, routeOptions, true)
+        }, routeOptions, { nullOverride: true })
         return routeOptions
     }
 
