@@ -32,10 +32,10 @@ Usage
 The following sample server shows all features at once:
 
 ```js
-const Boom          = require("boom")
-const HAPI          = require("hapi")
+const Boom          = require("@hapi/boom")
+const HAPI          = require("@hapi/hapi")
+const HAPIAuthBasic = require("@hapi/basic")
 const HAPIWebSocket = require("hapi-plugin-websocket")
-const HAPIAuthBasic = require("hapi-auth-basic")
 const WebSocket     = require("ws")
 
 ;(async () => {
@@ -191,8 +191,9 @@ $ curl -X POST --header 'Content-type: application/json' \
 {"at":"bar","mode":"http","seen":{"foo":42}}
 
 # access the exclusive WebSocket route via REST
-$ curl -X POST --header 'Content-type: application/json' --data '{ "foo": 42 }' http://127.0.0.1:12345/baz
-{"statusCode":400,"error":"Bad Request","message":"HTTP request to a WebSocket-only route not allowed"}
+$ curl -X POST --header 'Content-type: application/json' \
+  --data '{ "foo": 42 }' http://127.0.0.1:12345/baz
+{"statusCode":400,"error":"Bad Request","message":"Plain HTTP request to a WebSocket-only route not allowed"}
 
 # access the combined REST/WebSocket route via WebSocket
 $ wscat --connect ws://127.0.0.1:12345/bar
@@ -322,7 +323,6 @@ server.route({
         ...
     }
 })
-
 ```
 
 Notice
