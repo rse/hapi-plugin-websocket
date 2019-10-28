@@ -45,7 +45,7 @@ const WebSocket     = require("ws")
             plugins: { websocket: true }
         },
         handler: (request, h) => {
-            let { mode } = request.websocket()
+            const { mode } = request.websocket()
             return { at: "bar", mode: mode, seen: request.payload }
         }
     })
@@ -89,7 +89,7 @@ const WebSocket     = require("ws")
             }
         },
         handler: (request, h) => {
-            let { initially, ws } = request.websocket()
+            const { initially, ws } = request.websocket()
             if (initially) {
                 ws.send(JSON.stringify({ cmd: "HELLO", arg: request.auth.credentials.username }))
                 return ""

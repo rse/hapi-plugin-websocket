@@ -88,18 +88,18 @@ const register = async (server, pluginOptions) => {
         let route  = null
 
         /*  determine request parameters  */
-        let url    = URI.parse(req.url)
-        let host   = typeof req.headers.host === "string" ? req.headers.host : undefined
-        let path   = url.path
-        let protos = (req.headers["sec-websocket-protocol"] || "").split(/, */)
+        const url    = URI.parse(req.url)
+        const host   = typeof req.headers.host === "string" ? req.headers.host : undefined
+        const path   = url.path
+        const protos = (req.headers["sec-websocket-protocol"] || "").split(/, */)
 
         /*  find a matching route  */
-        let matched = server.match("POST", path, host)
+        const matched = server.match("POST", path, host)
         if (matched) {
             /*  we accept only WebSocket-enabled ones  */
             if (isRouteWebSocketEnabled(matched)) {
                 /*  optionally, we accept only the correct WebSocket subprotocol  */
-                let routeOptions = fetchRouteOptions(matched)
+                const routeOptions = fetchRouteOptions(matched)
                 if (!(   routeOptions.subprotocol !== null
                       && protos.indexOf(routeOptions.subprotocol) === -1)) {
                     /*  take this route  */
@@ -137,7 +137,7 @@ const register = async (server, pluginOptions) => {
 
             /*  ensure that incoming WebSocket requests have a corresponding HAPI route  */
             verifyClient: ({ req }, result) => {
-                let route = findRoute(req)
+                const route = findRoute(req)
                 if (route)
                     result(true)
                 else
@@ -147,18 +147,18 @@ const register = async (server, pluginOptions) => {
         pluginOptions.create(wss)
 
         /*  per-route peer (aka client) tracking  */
-        let routePeers = {}
+        const routePeers = {}
 
         /*  per-route timers  */
-        let routeTimers = {}
+        const routeTimers = {}
 
         /*  on WebSocket connection (actually HTTP upgrade events)...  */
         wss.on("connection", async (ws, req) => {
             /*  find the (previously already successfully matched) HAPI route  */
-            let route = findRoute(req)
+            const route = findRoute(req)
 
             /*  fetch the per-route options  */
-            let routeOptions = fetchRouteOptions(route)
+            const routeOptions = fetchRouteOptions(route)
 
             /*  determine a route-specific identifier  */
             let routeId = `${route.method}:${route.path}`
@@ -170,7 +170,7 @@ const register = async (server, pluginOptions) => {
             /*  track the peer per-route  */
             if (routePeers[routeId] === undefined)
                 routePeers[routeId] = []
-            let peers = routePeers[routeId]
+            const peers = routePeers[routeId]
             peers.push(ws)
 
             /*  optionally enable automatic WebSocket PING messages  */
@@ -203,7 +203,7 @@ const register = async (server, pluginOptions) => {
                 wsf = new WSF(ws, routeOptions.frameEncoding)
 
             /*  provide a local context  */
-            let ctx = {}
+            const ctx = {}
 
             /*  allow application to hook into WebSocket connection  */
             routeOptions.connect.call(ctx, { ctx, wss, ws, wsf, req, peers })
@@ -211,13 +211,13 @@ const register = async (server, pluginOptions) => {
             /*  determine HTTP headers for simulated HTTP request:
                 take headers of initial HTTP upgrade request, but explicitly remove Accept-Encoding,
                 because it could lead HAPI to compress the payload (which we cannot post-process)  */
-            let headers = Object.assign({}, req.headers)
+            const headers = Object.assign({}, req.headers)
             delete headers["accept-encoding"]
 
             /*  optionally inject an empty initial message  */
             if (routeOptions.initially) {
                 /*  inject incoming WebSocket message as a simulated HTTP request  */
-                let response = await server.inject({
+                const response = await server.inject({
                     /*  simulate the hard-coded POST request  */
                     method:        "POST",
 
@@ -238,7 +238,7 @@ const register = async (server, pluginOptions) => {
                 /*  any HTTP redirection, client error or server error response
                     leads to an immediate WebSocket connection drop  */
                 if (response.statusCode >= 300) {
-                    let annotation = `(HAPI handler reponded with HTTP status ${response.statusCode})`
+                    const annotation = `(HAPI handler reponded with HTTP status ${response.statusCode})`
                     if (response.statusCode < 400)
                         ws.close(1002, `Protocol Error ${annotation}`)
                     else if (response.statusCode < 500)
@@ -258,10 +258,10 @@ const register = async (server, pluginOptions) => {
                     /*  process frame of expected type only  */
                     if (ev.frame.type === routeOptions.frameRequest) {
                         /*  re-encode data as JSON as HAPI want to decode it  */
-                        let message = JSON.stringify(ev.frame.data)
+                        const message = JSON.stringify(ev.frame.data)
 
                         /*  inject incoming WebSocket message as a simulated HTTP request  */
-                        let response = await server.inject({
+                        const response = await server.inject({
                             /*  simulate the hard-coded POST request  */
                             method:        "POST",
 
@@ -282,8 +282,8 @@ const register = async (server, pluginOptions) => {
                         /*  transform simulated HTTP response into an outgoing WebSocket message  */
                         if (response.statusCode !== 204 && ws.readyState === WS.OPEN) {
                             /*  decode data from JSON as HAPI has already encoded it  */
-                            let type = routeOptions.frameResponse
-                            let data = JSON.parse(response.payload)
+                            const type = routeOptions.frameResponse
+                            const data = JSON.parse(response.payload)
 
                             /*  send as framed data  */
                             wsf.send({ type, data }, ev.frame)
@@ -295,7 +295,7 @@ const register = async (server, pluginOptions) => {
                 /*  plain WebSocket communication (uncorrelated request/reponse)  */
                 ws.on("message", async (message) => {
                     /*  inject incoming WebSocket message as a simulated HTTP request  */
-                    let response = await server.inject({
+                    const response = await server.inject({
                         /*  simulate the hard-coded POST request  */
                         method:        "POST",
 
@@ -325,7 +325,7 @@ const register = async (server, pluginOptions) => {
                 routeOptions.disconnect.call(ctx, { ctx, wss, ws, wsf, req, peers })
 
                 /*  stop tracking the peer  */
-                let idx = routePeers[routeId].indexOf(ws)
+                const idx = routePeers[routeId].indexOf(ws)
                 routePeers[routeId].splice(idx, 1)
             })
 
@@ -395,7 +395,7 @@ const register = async (server, pluginOptions) => {
     /*  handle request/response hooks  */
     server.ext({ type: "onPostAuth", method: (request, h) => {
         if (isRouteWebSocketEnabled(request.route) && isRequestWebSocketDriven(request)) {
-            let routeOptions = fetchRouteOptions(request.route)
+            const routeOptions = fetchRouteOptions(request.route)
             return routeOptions.request.call(request.plugins.websocket.ctx,
                 request.plugins.websocket, request, h)
         }
@@ -403,7 +403,7 @@ const register = async (server, pluginOptions) => {
     } })
     server.ext({ type: "onPostHandler", method: (request, h) => {
         if (isRouteWebSocketEnabled(request.route) && isRequestWebSocketDriven(request)) {
-            let routeOptions = fetchRouteOptions(request.route)
+            const routeOptions = fetchRouteOptions(request.route)
             return routeOptions.response.call(request.plugins.websocket.ctx,
                 request.plugins.websocket, request, h)
         }
