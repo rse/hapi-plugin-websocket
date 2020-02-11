@@ -21,21 +21,21 @@
     },
     "dependencies": {
         "urijs":                   "1.19.2",
-        "@hapi/hoek":              "8.5.1",
-        "@hapi/boom":              "8.0.1",
+        "@hapi/hoek":              "9.0.3",
+        "@hapi/boom":              "9.0.0",
         "ws":                      "7.2.1",
         "websocket-framed":        "1.2.2"
     },
     "devDependencies": {
-        "@hapi/hapi":              "18.4.0",
-        "@hapi/basic":             "5.1.1",
+        "@hapi/hapi":              "19.1.0",
+        "@hapi/basic":             "6.0.0",
         "babel-eslint":            "10.0.3",
         "eslint":                  "6.8.0",
         "eslint-config-standard":  "14.1.0",
         "eslint-plugin-standard":  "4.0.1",
         "eslint-plugin-promise":   "4.2.1",
-        "eslint-plugin-import":    "2.19.1",
-        "eslint-plugin-node":      "10.0.0"
+        "eslint-plugin-import":    "2.20.1",
+        "eslint-plugin-node":      "11.0.0"
     },
     "engines": {
         "node":                    ">=8.0.0"
