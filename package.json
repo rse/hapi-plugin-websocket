@@ -21,7 +21,7 @@
     },
     "dependencies": {
         "urijs":                   "1.19.2",
-        "@hapi/hoek":              "8.5.0",
+        "@hapi/hoek":              "8.5.1",
         "@hapi/boom":              "8.0.1",
         "ws":                      "7.2.1",
         "websocket-framed":        "1.2.2"
