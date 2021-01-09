@@ -101,7 +101,7 @@ const WebSocket     = require("ws")
             if (request.payload.cmd === "PING")
                 return { result: "PONG" }
             else if (request.payload.cmd === "AWAKE-ALL") {
-                var peers = request.websocket().peers
+                const peers = request.websocket().peers
                 peers.forEach((peer) => {
                     peer.send(JSON.stringify({ cmd: "AWAKE" }))
                 })
