@@ -114,8 +114,8 @@ const register = async (server, pluginOptions) => {
     /*  the global WebSocket server instance  */
     let wss = null
 
-	/*  per-route timers  */
-	const routeTimers = {}
+    /*  per-route timers  */
+    const routeTimers = {}
 
 
     /*  perform WebSocket handling on HAPI start  */
@@ -345,13 +345,13 @@ const register = async (server, pluginOptions) => {
     /*  perform WebSocket handling on HAPI stop  */
     server.ext({ type: "onPreStop", method: (server, h) => {
         return new Promise((resolve /*, reject */) => {
-			// Stop all keepalive intervals
-			for (const routeId of Object.keys(routeTimers)) {
-				clearInterval(routeTimers[routeId]);
-				delete routeTimers[routeId];
-			}
+            // Stop all keepalive intervals
+            for (const routeId of Object.keys(routeTimers)) {
+                clearInterval(routeTimers[routeId]);
+                delete routeTimers[routeId];
+            }
 
-			/*  close WebSocket server instance  */
+            /*  close WebSocket server instance  */
             if (wss !== null) {
                 /*  trigger the WebSocket server to close everything  */
                 wss.close(() => {
