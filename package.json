@@ -24,7 +24,7 @@
         "@hapi/hoek":              "9.2.0",
         "@hapi/boom":              "9.1.2",
         "ws":                      "7.5.1",
-        "websocket-framed":        "1.2.4"
+        "websocket-framed":        "1.2.5"
     },
     "devDependencies": {
         "@hapi/hapi":              "20.1.5",
