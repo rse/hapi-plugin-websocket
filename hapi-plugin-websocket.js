@@ -114,6 +114,10 @@ const register = async (server, pluginOptions) => {
     /*  the global WebSocket server instance  */
     let wss = null
 
+    /*  per-route timers  */
+    const routeTimers = {}
+
+
     /*  perform WebSocket handling on HAPI start  */
     server.ext({ type: "onPostStart", method: (server) => {
         /*  sanity check all HAPI route definitions  */
@@ -148,9 +152,6 @@ const register = async (server, pluginOptions) => {
 
         /*  per-route peer (aka client) tracking  */
         const routePeers = {}
-
-        /*  per-route timers  */
-        const routeTimers = {}
 
         /*  on WebSocket connection (actually HTTP upgrade events)...  */
         wss.on("connection", async (ws, req) => {
@@ -343,8 +344,14 @@ const register = async (server, pluginOptions) => {
 
     /*  perform WebSocket handling on HAPI stop  */
     server.ext({ type: "onPreStop", method: (server, h) => {
-        /*  close WebSocket server instance  */
         return new Promise((resolve /*, reject */) => {
+            // Stop all keepalive intervals
+            for (const routeId of Object.keys(routeTimers)) {
+                clearInterval(routeTimers[routeId]);
+                delete routeTimers[routeId];
+            }
+
+            /*  close WebSocket server instance  */
             if (wss !== null) {
                 /*  trigger the WebSocket server to close everything  */
                 wss.close(() => {
