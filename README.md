@@ -105,7 +105,7 @@ const WebSocket     = require("ws")
                 websocket: {
                     only: true,
                     initially: true,
-                    subprotocol: "quux/1.0",
+                    subprotocol: "quux.example.com",
                     connect: ({ ctx, ws }) => {
                         ctx.to = setInterval(() => {
                             if (ws.readyState === WebSocket.OPEN)
@@ -210,7 +210,7 @@ $ wscat --connect ws://127.0.0.1:12345/baz
 < {"at":"baz","seen":{"foo":7}}
 
 # access the full-featured exclusive WebSocket route via WebSockets
-$ wscat --subprotocol "quux/1.0" --auth foo:bar --connect ws://127.0.0.1:12345/quux
+$ wscat --subprotocol "quux.example.com" --auth foo:bar --connect ws://127.0.0.1:12345/quux
 < {"cmd":"HELLO",arg:"foo"}
 > {"cmd":"PING"}
 < {"result":"PONG"}
@@ -281,7 +281,7 @@ server.route({
             websocket: {
                 only: true,
                 autoping: 10 * 1000,
-                subprotocol: "foo/1.0",
+                subprotocol: "v1.foo.example.com",
                 initially: true,
                 connect: ({ ctx, wss, ws, req, peers }) => {
                     ...
