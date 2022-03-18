@@ -46,7 +46,7 @@ const WebSocket     = require("ws")
     await server.register(HAPIWebSocket)
     await server.register(HAPIAuthBasic)
 
-    /*  register Basic authentication stategy  */
+    /*  register Basic authentication strategy  */
     server.auth.strategy("basic", "basic", {
         validate: async (request, username, password, h) => {
             let isValid     = false
