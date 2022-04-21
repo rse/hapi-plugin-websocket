@@ -72,7 +72,7 @@ const WebSocket     = require("ws")
                 websocket: {
                     only: true,
                     initially: true,
-                    subprotocol: "quux/1.0",
+                    subprotocol: "quux",
                     connect: ({ ctx, ws }) => {
                         ctx.to = setInterval(() => {
                             if (ws.readyState === WebSocket.OPEN)
