@@ -61,4 +61,5 @@ rules:
     curly:                               off
     space-in-parens:                     off
     object-curly-newline:                off
+    object-shorthand:                    off
 
