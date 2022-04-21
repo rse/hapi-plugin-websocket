@@ -1,6 +1,6 @@
 /*
 **  hapi-plugin-websocket -- HAPI plugin for seamless WebSocket integration
-**  Copyright (c) 2016-2021 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Copyright (c) 2016-2022 Dr. Ralf S. Engelschall <rse@engelschall.com>
 **
 **  Permission is hereby granted, free of charge, to any person obtaining
 **  a copy of this software and associated documentation files (the
