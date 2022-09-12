@@ -217,7 +217,7 @@ const register = async (server, pluginOptions) => {
             /*  optionally inject an empty initial message  */
             if (routeOptions.initially) {
                 /*  inject incoming WebSocket message as a simulated HTTP request  */
-                const response = await server.inject({
+                server.inject({
                     /*  simulate the hard-coded POST request  */
                     method:        "POST",
 
@@ -233,19 +233,19 @@ const register = async (server, pluginOptions) => {
                     plugins: {
                         websocket: { mode: "websocket", ctx, wss, ws, wsf, req, peers, initially: true }
                     }
-                })
-
-                /*  any HTTP redirection, client error or server error response
-                    leads to an immediate WebSocket connection drop  */
-                if (response.statusCode >= 300) {
-                    const annotation = `(HAPI handler responded with HTTP status ${response.statusCode})`
-                    if (response.statusCode < 400)
-                        ws.close(1002, `Protocol Error ${annotation}`)
-                    else if (response.statusCode < 500)
-                        ws.close(1008, `Policy Violation ${annotation}`)
-                    else
-                        ws.close(1011, `Server Error ${annotation}`)
-                }
+                }).then(response => {
+                    /*  any HTTP redirection, client error or server error response
+                        leads to an immediate WebSocket connection drop  */
+                    if (response.statusCode >= 300) {
+                        const annotation = `(HAPI handler responded with HTTP status ${response.statusCode})`
+                        if (response.statusCode < 400)
+                            ws.close(1002, `Protocol Error ${annotation}`)
+                        else if (response.statusCode < 500)
+                            ws.close(1008, `Policy Violation ${annotation}`)
+                        else
+                            ws.close(1011, `Server Error ${annotation}`)
+                    }
+                });
             }
 
             /*  hook into WebSocket message retrieval  */
