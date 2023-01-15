@@ -4,6 +4,7 @@
     "description": "HAPI plugin for seamless WebSocket integration",
     "keywords":    [ "hapi", "plugin", "websocket" ],
     "main":        "./hapi-plugin-websocket.js",
+    "types":       "./hapi-plugin-websocket.d.ts",
     "license":     "MIT",
     "repository": {
         "type": "git",
@@ -24,7 +25,9 @@
         "@hapi/hoek":              "11.0.2",
         "@hapi/boom":              "10.0.0",
         "ws":                      "8.12.0",
-        "websocket-framed":        "1.2.9"
+        "websocket-framed":        "1.2.9",
+        "@types/node":             "18.11.18",
+        "@types/ws":               "8.5.4"
     },
     "devDependencies": {
         "@hapi/hapi":              "21.2.0",
