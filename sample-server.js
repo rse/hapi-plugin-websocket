@@ -13,7 +13,7 @@ const WebSocket     = require("ws")
     await server.register(HAPIWebSocket)
     await server.register(HAPIAuthBasic)
 
-    /*  register Basic authentication stategy  */
+    /*  register Basic authentication strategy  */
     server.auth.strategy("basic", "basic", {
         validate: async (request, username, password, h) => {
             let isValid     = false
@@ -72,7 +72,7 @@ const WebSocket     = require("ws")
                 websocket: {
                     only: true,
                     initially: true,
-                    subprotocol: "quux",
+                    subprotocol: "quux.example.com",
                     connect: ({ ctx, ws }) => {
                         ctx.to = setInterval(() => {
                             if (ws.readyState === WebSocket.OPEN)

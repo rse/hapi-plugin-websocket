@@ -132,7 +132,7 @@ const register = async (server, pluginOptions) => {
         /*  establish a WebSocket server and attach it to the
             Node HTTP server underlying the HAPI server  */
         wss = new WS.Server({
-            /*  the underyling HTTP server  */
+            /*  the underlying HTTP server  */
             server: server.listener,
 
             /*  disable per-server client tracking, as we have to perform it per-route  */
@@ -238,7 +238,7 @@ const register = async (server, pluginOptions) => {
                 /*  any HTTP redirection, client error or server error response
                     leads to an immediate WebSocket connection drop  */
                 if (response.statusCode >= 300) {
-                    const annotation = `(HAPI handler reponded with HTTP status ${response.statusCode})`
+                    const annotation = `(HAPI handler responded with HTTP status ${response.statusCode})`
                     if (response.statusCode < 400)
                         ws.close(1002, `Protocol Error ${annotation}`)
                     else if (response.statusCode < 500)
@@ -292,7 +292,7 @@ const register = async (server, pluginOptions) => {
                 })
             }
             else {
-                /*  plain WebSocket communication (uncorrelated request/reponse)  */
+                /*  plain WebSocket communication (uncorrelated request/response)  */
                 ws.on("message", async (message) => {
                     /*  inject incoming WebSocket message as a simulated HTTP request  */
                     const response = await server.inject({
