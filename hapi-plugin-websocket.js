@@ -380,7 +380,7 @@ const register = async (server, pluginOptions) => {
                 remotePort: {
                     value: request.plugins.websocket.req.socket.remotePort
                 }
-            });
+            })
         }
         return h.continue
     } })
