@@ -25,12 +25,12 @@
 import * as ws   from "ws"
 import * as http from "node:http"
 
-interface HapiWebsocketPluginState<WSF = any> {
+interface HapiWebsocketPluginState {
     mode: "websocket"
     ctx: Record<string, any>
     wss: ws.Server
     ws: ws.WebSocket
-    wsf: WSF
+    wsf: any
     req: http.IncomingMessage
     peers: ws.WebSocket[]
     initially: boolean
