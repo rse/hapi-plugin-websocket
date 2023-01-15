@@ -21,17 +21,17 @@
     },
     "dependencies": {
         "urijs":                   "1.19.11",
-        "@hapi/hoek":              "9.2.1",
-        "@hapi/boom":              "9.1.4",
-        "ws":                      "8.5.0",
-        "websocket-framed":        "1.2.8"
+        "@hapi/hoek":              "11.0.2",
+        "@hapi/boom":              "10.0.0",
+        "ws":                      "8.12.0",
+        "websocket-framed":        "1.2.9"
     },
     "devDependencies": {
-        "@hapi/hapi":              "20.2.2",
-        "@hapi/basic":             "6.0.0",
-        "eslint":                  "8.13.0",
+        "@hapi/hapi":              "21.2.0",
+        "@hapi/basic":             "7.0.0",
+        "eslint":                  "8.32.0",
         "eslint-config-standard":  "17.0.0",
-        "eslint-plugin-import":    "2.26.0",
+        "eslint-plugin-import":    "2.27.4",
         "eslint-plugin-node":      "11.1.0"
     },
     "engines": {
