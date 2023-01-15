@@ -76,6 +76,9 @@ interface HapiWebsocketPluginSpecificConfiguration {
 }
 
 declare module "@hapi/hapi" {
+    export interface Request<ReqRefDefaults> {
+        websocket(): HapiWebsocketPluginState
+    }
     export interface PluginsStates {
         websocket: HapiWebsocketPluginState
     }
