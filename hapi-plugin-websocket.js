@@ -371,8 +371,16 @@ const register = async (server, pluginOptions) => {
     /*  make available to HAPI request the remote WebSocket information  */
     server.ext({ type: "onRequest", method: (request, h) => {
         if (isRequestWebSocketDriven(request)) {
-            request.info.remoteAddress = request.plugins.websocket.req.socket.remoteAddress
-            request.info.remotePort    = request.plugins.websocket.req.socket.remotePort
+            /*  RequestInfo's remoteAddress and remotePort use getters and are not
+                settable, so we have to replace them.  */
+            Object.defineProperties(request.info, {
+                remoteAddress: {
+                    value: request.plugins.websocket.req.socket.remoteAddress
+                },
+                remotePort: {
+                    value: request.plugins.websocket.req.socket.remotePort
+                }
+            });
         }
         return h.continue
     } })
