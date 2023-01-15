@@ -1,6 +1,6 @@
 {
     "name":        "hapi-plugin-websocket",
-    "version":     "2.3.7",
+    "version":     "2.3.8",
     "description": "HAPI plugin for seamless WebSocket integration",
     "keywords":    [ "hapi", "plugin", "websocket" ],
     "main":        "./hapi-plugin-websocket.js",
@@ -20,19 +20,18 @@
         "@hapi/hapi":              ">=18.0.0"
     },
     "dependencies": {
-        "urijs":                   "1.19.7",
+        "urijs":                   "1.19.11",
         "@hapi/hoek":              "9.2.1",
         "@hapi/boom":              "9.1.4",
-        "ws":                      "8.2.3",
+        "ws":                      "8.5.0",
         "websocket-framed":        "1.2.8"
     },
     "devDependencies": {
-        "@hapi/hapi":              "20.2.1",
+        "@hapi/hapi":              "20.2.2",
         "@hapi/basic":             "6.0.0",
-        "babel-eslint":            "10.1.0",
-        "eslint":                  "7.32.0",
-        "eslint-config-standard":  "16.0.3",
-        "eslint-plugin-import":    "2.25.2",
+        "eslint":                  "8.13.0",
+        "eslint-config-standard":  "17.0.0",
+        "eslint-plugin-import":    "2.26.0",
         "eslint-plugin-node":      "11.1.0"
     },
     "engines": {

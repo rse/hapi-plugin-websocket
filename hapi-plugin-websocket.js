@@ -1,6 +1,6 @@
 /*
 **  hapi-plugin-websocket -- HAPI plugin for seamless WebSocket integration
-**  Copyright (c) 2016-2021 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Copyright (c) 2016-2022 Dr. Ralf S. Engelschall <rse@engelschall.com>
 **
 **  Permission is hereby granted, free of charge, to any person obtaining
 **  a copy of this software and associated documentation files (the
@@ -371,8 +371,16 @@ const register = async (server, pluginOptions) => {
     /*  make available to HAPI request the remote WebSocket information  */
     server.ext({ type: "onRequest", method: (request, h) => {
         if (isRequestWebSocketDriven(request)) {
-            request.info.remoteAddress = request.plugins.websocket.req.socket.remoteAddress
-            request.info.remotePort    = request.plugins.websocket.req.socket.remotePort
+            /*  RequestInfo's remoteAddress and remotePort use getters and are not
+                settable, so we have to replace them.  */
+            Object.defineProperties(request.info, {
+                remoteAddress: {
+                    value: request.plugins.websocket.req.socket.remoteAddress
+                },
+                remotePort: {
+                    value: request.plugins.websocket.req.socket.remotePort
+                }
+            });
         }
         return h.continue
     } })

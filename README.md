@@ -281,7 +281,7 @@ server.route({
             websocket: {
                 only: true,
                 autoping: 10 * 1000,
-                subprotocol: "v1.foo.example.com",
+                subprotocol: "quux.example.com",
                 initially: true,
                 connect: ({ ctx, wss, ws, req, peers }) => {
                     ...
@@ -358,7 +358,7 @@ should be your choice, of course.
 License
 -------
 
-Copyright (c) 2016-2021 Dr. Ralf S. Engelschall (http://engelschall.com/)
+Copyright (c) 2016-2022 Dr. Ralf S. Engelschall (http://engelschall.com/)
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
