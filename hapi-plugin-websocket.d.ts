@@ -24,6 +24,7 @@
 
 import * as ws   from "ws"
 import * as http from "node:http"
+import * as HAPI from "@hapi/hapi"
 
 interface HapiWebsocketPluginState {
     mode: "websocket"
@@ -83,7 +84,7 @@ declare module "@hapi/hapi" {
         websocket: HapiWebsocketPluginState
     }
     export interface PluginSpecificConfiguration {
-        websocket: HapiWebsocketPluginSpecificConfiguration
+        websocket?: HapiWebsocketPluginSpecificConfiguration
     }
 }
 
