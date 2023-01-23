@@ -22,69 +22,79 @@
 **  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import * as ws   from "ws"
-import * as http from "node:http"
-import * as HAPI from "@hapi/hapi"
+import { Plugin, Request, ReqRef, ReqRefDefaults } from "@hapi/hapi"
+import { Podium }                                  from "@hapi/podium"
+import * as ws                                     from "ws"
+import * as http                                   from "node:http"
 
-interface HapiWebsocketPluginState {
-    mode: "websocket"
-    ctx: Record<string, any>
-    wss: ws.Server
-    ws: ws.WebSocket
-    wsf: any
-    req: http.IncomingMessage
-    peers: ws.WebSocket[]
-    initially: boolean
+declare namespace HAPIPluginWebSockets {
+    interface PluginState {
+        mode: "websocket"
+        ctx: Record<string, any>
+        wss: ws.Server
+        ws: ws.WebSocket
+        wsf: any
+        req: http.IncomingMessage
+        peers: ws.WebSocket[]
+        initially: boolean
+    }
+
+    interface PluginSpecificConfiguration {
+        only?: boolean
+        subprotocol?: string
+        error?: (
+            this: PluginState["ctx"],
+            pluginState: PluginState,
+            error: Error
+        ) => void
+        connect?: (
+            this: PluginState["ctx"],
+            pluginState: PluginState
+        ) => void
+        disconnect?: (
+            this: PluginState["ctx"],
+            pluginState: PluginState
+        ) => void
+        request?: (
+            ctx: any,
+            request: any,
+            h?: any
+        ) => void
+        response?: (
+            ctx: any,
+            request: any,
+            h?: any
+        ) => void
+        frame?: boolean
+        frameEncoding?: "json" | string
+        frameRequest?: "REQUEST" | string
+        frameResponse?: "RESPONSE" | string
+        frameMessage?: (
+            this: PluginState["ctx"],
+            pluginState: PluginState,
+            frame: any
+        ) => void
+        autoping?: number
+        initially?: boolean
+    }
+
+    interface OptionalRegistrationOptions {
+    }
 }
 
-interface HapiWebsocketPluginSpecificConfiguration {
-    only?: boolean
-    subprotocol?: string
-    error?: (
-        this: HapiWebsocketPluginState["ctx"],
-        pluginState: HapiWebsocketPluginState,
-        error: Error
-    ) => void
-    connect?: (
-        this: HapiWebsocketPluginState["ctx"],
-        pluginState: HapiWebsocketPluginState
-    ) => void
-    disconnect?: (
-        this: HapiWebsocketPluginState["ctx"],
-        pluginState: HapiWebsocketPluginState
-    ) => void
-    request?: (
-        ctx: any,
-        request: any,
-        h?: any
-    ) => void
-    response?: (
-        ctx: any,
-        request: any,
-        h?: any
-    ) => void
-    frame?: boolean
-    frameEncoding?: "json" | string
-    frameRequest?: "REQUEST" | string
-    frameResponse?: "RESPONSE" | string
-    frameMessage?: (
-        this: HapiWebsocketPluginState["ctx"],
-        pluginState: HapiWebsocketPluginState,
-        frame: any
-    ) => void
-    autoping?: number
-    initially?: boolean
-}
+declare const HAPIPluginDucky: Plugin<HAPIPluginWebSockets.OptionalRegistrationOptions>
+
+export = HAPIPluginWebSockets
 
 declare module "@hapi/hapi" {
     export interface Request<Refs extends ReqRef = ReqRefDefaults> extends Podium {
-        websocket(): HapiWebsocketPluginState
+        websocket(): HAPIPluginWebSockets.PluginState
     }
     export interface PluginsStates {
-        websocket: HapiWebsocketPluginState
+        websocket: HAPIPluginWebSockets.PluginState
     }
     export interface PluginSpecificConfiguration {
-        websocket?: HapiWebsocketPluginSpecificConfiguration
+        websocket?: HAPIPluginWebSockets.PluginSpecificConfiguration
     }
 }
 
