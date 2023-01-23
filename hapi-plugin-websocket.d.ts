@@ -77,7 +77,7 @@ interface HapiWebsocketPluginSpecificConfiguration {
 }
 
 declare module "@hapi/hapi" {
-    export interface Request {
+    export interface Request<Refs extends ReqRef = ReqRefDefaults> extends Podium {
         websocket(): HapiWebsocketPluginState
     }
     export interface PluginsStates {
