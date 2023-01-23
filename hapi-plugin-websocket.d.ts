@@ -27,7 +27,7 @@ import { Podium }                                  from "@hapi/podium"
 import * as ws                                     from "ws"
 import * as http                                   from "node:http"
 
-declare namespace HAPIPluginWebSockets {
+declare namespace HAPIPluginWebsocket {
     interface PluginState {
         mode: "websocket"
         ctx: Record<string, any>
@@ -82,19 +82,19 @@ declare namespace HAPIPluginWebSockets {
     }
 }
 
-declare const HAPIPluginDucky: Plugin<HAPIPluginWebSockets.OptionalRegistrationOptions>
+declare const HAPIPluginWebsocket: Plugin<HAPIPluginWebsocket.OptionalRegistrationOptions>
 
-export = HAPIPluginWebSockets
+export = HAPIPluginWebsocket
 
 declare module "@hapi/hapi" {
     export interface Request<Refs extends ReqRef = ReqRefDefaults> extends Podium {
-        websocket(): HAPIPluginWebSockets.PluginState
+        websocket(): HAPIPluginWebsocket.PluginState
     }
     export interface PluginsStates {
-        websocket: HAPIPluginWebSockets.PluginState
+        websocket: HAPIPluginWebsocket.PluginState
     }
     export interface PluginSpecificConfiguration {
-        websocket?: HAPIPluginWebSockets.PluginSpecificConfiguration
+        websocket?: HAPIPluginWebsocket.PluginSpecificConfiguration
     }
 }
 
