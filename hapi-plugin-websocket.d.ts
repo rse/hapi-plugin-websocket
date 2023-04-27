@@ -23,7 +23,7 @@
 */
 
 import { Plugin, Request, ReqRef, ReqRefDefaults } from "@hapi/hapi"
-import { Podium }                                  from "@hapi/podium"
+import Podium                                      from "@hapi/podium"
 import * as ws                                     from "ws"
 import * as http                                   from "node:http"
 
