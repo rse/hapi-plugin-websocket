@@ -39,6 +39,17 @@ declare namespace HAPIPluginWebsocket {
         initially: boolean
     }
 
+    interface PluginStateHttp {
+        mode: "http"
+        ctx: null
+        wss: null
+        ws: null
+        wsf: null
+        req: null
+        peers: null
+        initially?: null
+    }
+
     interface PluginSpecificConfiguration {
         only?: boolean
         subprotocol?: string
@@ -88,7 +99,7 @@ export = HAPIPluginWebsocket
 
 declare module "@hapi/hapi" {
     export interface Request<Refs extends ReqRef = ReqRefDefaults> extends Podium {
-        websocket(): HAPIPluginWebsocket.PluginState
+        websocket(): HAPIPluginWebsocket.PluginState | HAPIPluginWebsocket.PluginStateHttp
     }
     export interface PluginsStates {
         websocket: HAPIPluginWebsocket.PluginState
