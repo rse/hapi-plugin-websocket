@@ -206,7 +206,7 @@ const register = async (server, pluginOptions) => {
             const ctx = {}
 
             /*  allow application to hook into WebSocket connection  */
-            routeOptions.connect.call(ctx, { ctx, wss, ws, wsf, req, peers })
+            routeOptions.connect.call(ctx, { mode: "websocket", ctx, wss, ws, wsf, req, peers })
 
             /*  determine HTTP headers for simulated HTTP request:
                 take headers of initial HTTP upgrade request, but explicitly remove Accept-Encoding,
@@ -253,7 +253,7 @@ const register = async (server, pluginOptions) => {
                 /*  framed WebSocket communication (correlated request/reply)  */
                 wsf.on("message", async (ev) => {
                     /*  allow application to hook into raw WebSocket frame processing  */
-                    routeOptions.frameMessage.call(ctx, { ctx, wss, ws, wsf, req, peers }, ev.frame)
+                    routeOptions.frameMessage.call(ctx, { mode: "websocket", ctx, wss, ws, wsf, req, peers }, ev.frame)
 
                     /*  process frame of expected type only  */
                     if (ev.frame.type === routeOptions.frameRequest) {
@@ -322,7 +322,7 @@ const register = async (server, pluginOptions) => {
             /*  hook into WebSocket disconnection  */
             ws.on("close", () => {
                 /*  allow application to hook into WebSocket disconnection  */
-                routeOptions.disconnect.call(ctx, { ctx, wss, ws, wsf, req, peers })
+                routeOptions.disconnect.call(ctx, { mode: "websocket", ctx, wss, ws, wsf, req, peers })
 
                 /*  stop tracking the peer  */
                 const idx = routePeers[routeId].indexOf(ws)
@@ -331,11 +331,11 @@ const register = async (server, pluginOptions) => {
 
             /*  allow application to hook into WebSocket error processing  */
             ws.on("error", (error) => {
-                routeOptions.error.call(ctx, { ctx, wss, ws, wsf, req, peers }, error)
+                routeOptions.error.call(ctx, { mode: "websocket", ctx, wss, ws, wsf, req, peers }, error)
             })
             if (routeOptions.frame === true) {
                 wsf.on("error", (error) => {
-                    routeOptions.error.call(ctx, { ctx, wss, ws, wsf, req, peers }, error)
+                    routeOptions.error.call(ctx, { mode: "websocket", ctx, wss, ws, wsf, req, peers }, error)
                 })
             }
         })
